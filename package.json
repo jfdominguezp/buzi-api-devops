@@ -1,0 +1,9 @@
+{
+    "name": "mrcupon-api",
+    "main": "server.js",
+    "dependencies": {
+        "body-parser": "~1.18.2",
+        "express": "~4.16.0",
+        "mongoose": "^4.12.6"
+    }
+}
