@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 var businessSchema = new Schema(
   {
     name: String,
-    user: String,
+    userId: String,
     hasBranches: Boolean,
     subscription: {
       subscriptionId: String,
@@ -31,12 +31,7 @@ var businessSchema = new Schema(
       facebookUser: String,
       intagramUser: String
     },
-    branches: [{
-      name: String,
-      address: String,
-      phoneNumber: String,
-      email: String
-    }]
+    branches: [Branch],
     coupons: [{
       couponId: String
     }]
