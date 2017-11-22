@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var shortId = require('shortid');
 var Schema = mongoose.Schema;
 
 var BranchSchema = new Schema({
@@ -10,11 +11,14 @@ var BranchSchema = new Schema({
 
 var BusinessSchema = new Schema(
   {
+    shortId: {type: String, unique: true, default: shortId.generate},
     name: { type: String, required: true },
     clientId: { type: String, required: true },
     subscription: {
-      subscriptionId: { type: mongoose.Schema.Types.ObjectId, required: true },
-      active: { type: Boolean, required: true }
+      subscriptionId: { type: String, required: true },
+      active: { type: Boolean, required: true },
+      lastPayment: Date,
+      paidDays: Number,
     },
     basicData: {
       country: { type: String, required: true },
@@ -38,8 +42,7 @@ var BusinessSchema = new Schema(
       intagramUser: String
     },
     branches: [BranchSchema],
-    coupons: [mongoose.Schema.Types.ObjectId]
-
+    coupons: [String]
   }
 );
 
