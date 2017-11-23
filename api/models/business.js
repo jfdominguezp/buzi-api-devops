@@ -43,7 +43,18 @@ var BusinessSchema = new Schema(
     },
     branches: [BranchSchema],
     coupons: [String]
+  },
+  {
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true }
   }
 );
+
+BusinessSchema.virtual('plan', {
+  ref: 'Subscription',
+  localField: 'subscription.subscriptionId',
+  foreignField: 'shortId',
+  justOne: true
+});
 
 module.exports = mongoose.model('Business', BusinessSchema);

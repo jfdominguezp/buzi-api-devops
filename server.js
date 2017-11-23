@@ -6,6 +6,7 @@ var mongoose   = require('mongoose');
 //Routes
 var businessRoutes = require('./api/routes/business-routes');
 var couponRoutes = require('./api/routes/coupon-routes');
+var subscriptionRoutes = require('./api/routes/subscription-routes');
 
 //Config
 var config       = require('./config/server-config');
@@ -27,6 +28,7 @@ router.use(bodyParser.json());
 
 router.use('/business', businessRoutes);
 router.use('/coupon', couponRoutes);
+router.use('/subscription', subscriptionRoutes);
 
 app.use('/api', router);
 

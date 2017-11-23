@@ -33,14 +33,16 @@ function couponPost(request, response) {
 }
 
 function couponGet(request, response) {
-  Coupon.findOne({ 'shortId': request.params.id }).populate('owner').exec(function(error, coupon) {
-    if(error) {
-      console.log(error);
-      response.status(500).json(error);
-    }else{
-      response.status(200).json(coupon);
-    }
-  });
+  Coupon.findOne({ 'shortId': request.params.id })
+    .populate({ path : 'owner', populate : { path : 'plan' } })
+    .exec(function(error, coupon) {
+      if(error) {
+        console.log(error);
+        response.status(500).json(error);
+      }else{
+        response.status(200).json(coupon);
+      }
+    });
 }
 
 function claimCoupon(request, response) {
