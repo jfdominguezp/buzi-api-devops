@@ -1,10 +1,12 @@
 var shortId = require('shortid');
+var randomString = require('randomString');
+var _ = require('lodash');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var CouponSchema = new Schema(
   {
-    shortId: {type: String, unique: true, default: shortId.generate},
+    shortId: { type: String, unique: true, default: shortId.generate },
     businessId: {type: String,  required: true},
     name: { type: String, required: true },
     description: { type: String, required: true },
@@ -16,10 +18,14 @@ var CouponSchema = new Schema(
     coupons: { type: Number, required: true, min: 1 },
     initialDate: { type: Date, required: true },
     finalDate: { type: Date, required: true },
-    claims: [{
-      user: { type: String, required: true },
-      code: { type: String, required: true },
-    }]
+    claims: {
+      type: [{
+        person: { type: String, required: true, unique: true },
+        code: { type: String, required: true, unique: true },
+        status: { type: String, default: 'Unused' }
+      }],
+      validate: [arrayLimit, '{PATH} exceeds the limit']
+    }
   },
   {
     toObject: { virtuals: true },
@@ -33,5 +39,25 @@ CouponSchema.virtual('owner', {
   foreignField: 'shortId',
   justOne: true
 });
+
+CouponSchema.virtual('availableCoupons').get(function() {
+  return this.coupons - this.claims.length;
+});
+
+CouponSchema.methods.claim = function(personId, cb) {
+  if(this.claims.length >= this.availableCoupons) return cb("All coupons claimed", null);
+  var newCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
+  while(_.find(this.claims, { code: newCode })){
+    newCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
+  }
+  this.claims.push({
+    person: personId,
+    code: newCode
+  })
+
+  return this.save(cb);
+}
+
+
 
 module.exports = mongoose.model('Coupon', CouponSchema);
