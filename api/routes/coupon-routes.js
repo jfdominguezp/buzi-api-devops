@@ -1,10 +1,13 @@
 var express = require('express');
 var Coupon = require('../models/coupon');
+var mailing = require('../middleware/mailing.js');
+var auth0 = require('../middleware/auth.js');
+var _ = require('lodash');
 var router = express.Router();
 
 router.post('/', couponPost);
 router.get('/:id', couponGet);
-router.put('/:id/claim');
+router.put('/:id/claim', claimCoupon);
 
 function couponPost(request, response) {
   var body = request.body;
@@ -46,7 +49,23 @@ function couponGet(request, response) {
 }
 
 function claimCoupon(request, response) {
+  console.log('Claim Coupon');
+  auth0.getPerson(request.body.userId)
+    .then(function(user) {
+      console.log('User: ');
+      console.log(user);
+      Coupon.claimCoupon(request.params.id, request.body.userId, function(error, coupon) {
+        if(error) return response.status(400).json(error);
+        if(!coupon) return response.status(404).json('Coupon not found');
 
+        var claim = _.find(coupon.claims, { person: request.body.userId });
+        mailing.sendCoupon(coupon, claim.code, user.email);
+        return response.status(200).json(coupon);
+      });
+    })
+    .catch(function(error) {
+      return response.status(401).json(error);
+    });
 }
 
 module.exports = router;

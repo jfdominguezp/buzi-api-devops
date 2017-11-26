@@ -18,14 +18,11 @@ var CouponSchema = new Schema(
     coupons: { type: Number, required: true, min: 1 },
     initialDate: { type: Date, required: true },
     finalDate: { type: Date, required: true },
-    claims: {
-      type: [{
-        person: { type: String, required: true, unique: true },
-        code: { type: String, required: true, unique: true },
-        status: { type: String, default: 'Unused' }
-      }],
-      validate: [arrayLimit, '{PATH} exceeds the limit']
-    }
+    claims: [{
+      person: { type: String, required: true, unique: true },
+      code: { type: String, required: true, unique: true },
+      status: { type: String, default: 'Unused' }
+    }]
   },
   {
     toObject: { virtuals: true },
@@ -44,20 +41,24 @@ CouponSchema.virtual('availableCoupons').get(function() {
   return this.coupons - this.claims.length;
 });
 
-CouponSchema.methods.claim = function(personId, cb) {
-  if(this.claims.length >= this.availableCoupons) return cb("All coupons claimed", null);
-  var newCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
-  while(_.find(this.claims, { code: newCode })){
-    newCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
-  }
-  this.claims.push({
-    person: personId,
-    code: newCode
-  })
-
-  return this.save(cb);
+CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
+  this.findOne({ 'shortId': couponId })
+    .populate({ path : 'owner', populate : { path : 'plan' } })
+    .exec(function(error, coupon) {
+      if (error || !coupon) return cb(error, coupon);
+      if (coupon.availableCoupons == 0) return cb("All coupons claimed", null);
+      if (_.find(coupon.claims, { person: personId })) return cb("User already claimed this coupon", null);
+      var newCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
+      while(_.find(coupon.claims, { code: newCode })){
+        newCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
+      }
+      coupon.claims.push({
+        person: personId,
+        code: newCode
+      });
+      return coupon.save(cb);
+    });
 }
-
 
 
 module.exports = mongoose.model('Coupon', CouponSchema);
