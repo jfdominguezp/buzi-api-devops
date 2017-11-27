@@ -9,10 +9,11 @@ var mailing = {
 }
 
 function sendCoupon(coupon, code, userEmail) {
-  console.log('Coupon: ');
-  console.log(coupon);
   var message = {
-    from: "cupones@mistercupon.co",
+    from: {
+      name: 'Mr. Cupón',
+      email: 'cupones@mistercupon.co',
+    },
     to: userEmail,
     subject: '¡Felicitaciones! Aquí está tu cupón para ' + coupon.owner.name,
     text: coupon.description,
@@ -23,11 +24,17 @@ function sendCoupon(coupon, code, userEmail) {
       'coupon_code': code,
       'coupon_enddate': dateFormat(coupon.finalDate, 'dd/mm/yyyy'),
       'business_name': coupon.owner.name,
-      'busines_address': coupon.owner.basicData.address,
+      'business_address': coupon.owner.basicData.address,
       'business_phone': coupon.owner.basicData.phoneNumber
     }
   };
-  sendgrid.send(message);
+  sendgrid.send(message)
+    .then(function(data) {
+      //Successfully sent
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
 }
 
 module.exports = mailing;

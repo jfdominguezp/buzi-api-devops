@@ -2,8 +2,8 @@ var ManagementClient = require('auth0').ManagementClient;
 
 var auth0 = new ManagementClient({
   domain: 'mrcupon.auth0.com',
-  clientId: 's1W0vQhTsQboLsVa5Wqq0rxDdjajXkXo',
-  clientSecret: '8HZ0-ugRzRkrgYhSjWbmTbD-_0NHplgRxcF5Jn_wLH5kzQv_lklxp0pA31eDMTNM'
+  clientId: process.env.AUTH0_CLIENT_ID,
+  clientSecret: process.env.AUTH0_CLIENT_SECRET
 });
 
 var auth = {

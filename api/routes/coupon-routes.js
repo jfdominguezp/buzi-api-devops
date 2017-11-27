@@ -51,16 +51,14 @@ function couponGet(request, response) {
 function claimCoupon(request, response) {
   console.log('Claim Coupon');
   auth0.getPerson(request.body.userId)
-    .then(function(user) {
-      console.log('User: ');
-      console.log(user);
+    .then(function(users) {
       Coupon.claimCoupon(request.params.id, request.body.userId, function(error, coupon) {
         if(error) return response.status(400).json(error);
         if(!coupon) return response.status(404).json('Coupon not found');
 
         var claim = _.find(coupon.claims, { person: request.body.userId });
-        mailing.sendCoupon(coupon, claim.code, user.email);
-        return response.status(200).json(coupon);
+        mailing.sendCoupon(coupon, claim.code, users[0].email);
+        return response.status(200).json({ code: claim.code });
       });
     })
     .catch(function(error) {

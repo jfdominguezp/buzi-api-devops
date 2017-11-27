@@ -1,9 +1,6 @@
 {
     "name": "mrcupon-api",
     "main": "server.js",
-    "scripts": {
-        "start": "set SENDGRID_API_KEY=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 & node server.js"
-    },
     "dependencies": {
         "@sendgrid/mail": "^6.1.4",
         "auth0": "^2.8.0",
