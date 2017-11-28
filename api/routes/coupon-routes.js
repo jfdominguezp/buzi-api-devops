@@ -76,17 +76,30 @@ function couponsGetFiltered(request, response) {
 }
 
 function getFeaturedCoupons(request, response) {
-  Business.distinct('shortId',
-  {
-    $and: [
-      { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
-      { 'subscription.active': true }
-    ]
-  },
-  function(error, businesses){
-    if(error) return response.status(400).json(error);
-    return response.json(businesses);
-  });
+  Business.distinct(
+    'shortId',
+    {
+      $and: [
+        { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
+        { 'subscription.active': true }
+      ]
+    },
+    function(error, businesses) {
+      if(error) return response.status(400).json(error);
+      Coupon.find(
+        {
+          $and: [
+            { 'businessId': { $in: businesses } },
+            { 'initialDate': { $lt: new Date() } },
+            { 'finalDate': { $gt: new Date() } }
+          ]
+        })
+        .populate('owner')
+        .exec(function(error, coupons){
+          if(error) return response.status(400).json(error);
+          return response.status(200).json(coupons); 
+        });
+    });
 }
 
 function getAllActiveCoupons(request, response) {
