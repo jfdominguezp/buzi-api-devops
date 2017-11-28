@@ -2,6 +2,7 @@ var sendgrid = require('@sendgrid/mail');
 var dateFormat = require('dateformat');
 
 sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+console.log('Sendgrid API KEY: ' + process.env.SENDGRID_API_KEY);
 sendgrid.setSubstitutionWrappers('{{', '}}');
 
 var mailing = {

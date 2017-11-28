@@ -1,11 +1,13 @@
 var express = require('express');
 var Coupon = require('../models/coupon');
+var Business = require('../models/business');
 var mailing = require('../middleware/mailing.js');
 var auth0 = require('../middleware/auth.js');
+var subscriptionIds = require('../util/subscription-ids.json');
 var _ = require('lodash');
 var router = express.Router();
 
-router.post('/', couponPost);
+router.get('/', couponsGetFiltered).post('/', couponPost);
 router.get('/:id', couponGet);
 router.put('/:id/claim', claimCoupon);
 
@@ -49,9 +51,9 @@ function couponGet(request, response) {
 }
 
 function claimCoupon(request, response) {
-  console.log('Claim Coupon');
   auth0.getPerson(request.body.userId)
     .then(function(users) {
+      if(!users || users.length < 1) return response.status(404).json('User not found');
       Coupon.claimCoupon(request.params.id, request.body.userId, function(error, coupon) {
         if(error) return response.status(400).json(error);
         if(!coupon) return response.status(404).json('Coupon not found');
@@ -64,6 +66,36 @@ function claimCoupon(request, response) {
     .catch(function(error) {
       return response.status(401).json(error);
     });
+}
+
+function couponsGetFiltered(request, response) {
+  var filter = request.query.filter;
+  console.log('Filter: ' + filter);
+  if(filter === "featured") return getFeaturedCoupons(request, response);
+  if(filter === "all") return getAllActiveCoupons(request, response);
+}
+
+function getFeaturedCoupons(request, response) {
+  Business.distinct('shortId',
+  {
+    $and: [
+      { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
+      { 'subscription.active': true }
+    ]
+  },
+  function(error, businesses){
+    if(error) return response.status(400).json(error);
+    return response.json(businesses);
+  });
+}
+
+function getAllActiveCoupons(request, response) {
+  Coupon.find({ })
+    .populate('owner')
+    .exec(function(error, data) {
+    if(error) return response.status(400).json(error);
+    return response.status(200).json(data);
+  });
 }
 
 module.exports = router;

@@ -42,7 +42,7 @@ var BusinessSchema = new Schema(
       intagramUser: String
     },
     branches: [BranchSchema],
-    coupons: [String]
+    coupons: [{ couponId: String }]
   },
   {
     toObject: { virtuals: true },
@@ -53,6 +53,13 @@ var BusinessSchema = new Schema(
 BusinessSchema.virtual('plan', {
   ref: 'Subscription',
   localField: 'subscription.subscriptionId',
+  foreignField: 'shortId',
+  justOne: true
+});
+
+BusinessSchema.virtual('couponsList', {
+  ref: 'Coupon',
+  localField: 'coupons.couponId',
   foreignField: 'shortId',
   justOne: true
 });
