@@ -68,39 +68,6 @@ function claimCoupon(request, response) {
     });
 }
 
-function couponsGetFiltered(request, response) {
-  var filter = request.query.filter;
-  console.log('Filter: ' + filter);
-  if(filter === "featured") return getFeaturedCoupons(request, response);
-  if(filter === "all") return getAllActiveCoupons(request, response);
-}
-
-function getFeaturedCoupons(request, response) {
-  Business.distinct(
-    'shortId',
-    {
-      $and: [
-        { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
-        { 'subscription.active': true }
-      ]
-    },
-    function(error, businesses) {
-      if(error) return response.status(400).json(error);
-      Coupon.find(
-        {
-          $and: [
-            { 'businessId': { $in: businesses } },
-            { 'initialDate': { $lt: new Date() } },
-            { 'finalDate': { $gt: new Date() } }
-          ]
-        })
-        .populate('owner')
-        .exec(function(error, coupons){
-          if(error) return response.status(400).json(error);
-          return response.status(200).json(coupons); 
-        });
-    });
-}
 
 function getAllActiveCoupons(request, response) {
   Coupon.find({ })
@@ -109,6 +76,59 @@ function getAllActiveCoupons(request, response) {
     if(error) return response.status(400).json(error);
     return response.status(200).json(data);
   });
+}
+
+function couponsGetFiltered(request, response) {
+  var filter = request.query.ft;
+  var categories = require('../util/coupon-categories.json');
+  if(!filter || !categories[filter]) return response.status(404).json('Unknown category');
+
+  if(categories[filter] === "featured") return getFeaturedCoupons(request, response);
+  if(filter === "all") return getAllActiveCoupons(request, response);
+  return getCouponsByCategory(categories[filter], request, response);
+}
+
+function getFeaturedCoupons(request, response) {
+  var businessCriteria = [
+    { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
+    { 'subscription.active': true }
+  ];
+  var couponCriteria = [
+    { 'initialDate': { $lt: new Date() } },
+    { 'finalDate': { $gt: new Date() } }
+  ];
+  return queryCoupons(businessCriteria, couponCriteria, request, response);
+}
+
+function getCouponsByCategory(category, request, response) {
+  var businessCriteria = [
+    { 'subscription.active': true }
+  ];
+  var couponCriteria = [
+    { 'category': category },
+    { 'initialDate': { $lt: new Date() } },
+    { 'finalDate': { $gt: new Date() } }
+  ];
+  return queryCoupons(businessCriteria, couponCriteria, request, response);
+}
+
+function queryCoupons(businessCriteria, couponCriteria, request, response) {
+  Business.distinct('shortId', { $and: businessCriteria },
+    function(error, businesses) {
+      if(error) return response.status(400).json(error);
+      Coupon
+        .find({
+          $and: [
+            { 'businessId': { $in: businesses } },
+            { $and: couponCriteria }
+          ]
+        })
+        .populate('owner')
+        .exec(function(error, coupons){
+          if(error) return response.status(400).json(error);
+          return response.status(200).json(coupons);
+        });
+    });
 }
 
 module.exports = router;
