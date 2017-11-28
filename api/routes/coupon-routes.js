@@ -39,12 +39,14 @@ function couponPost(request, response) {
 
 function couponGet(request, response) {
   Coupon.findOne({ 'shortId': request.params.id })
-    .populate({ path : 'owner', populate : { path : 'plan' } })
+    .select('-claims -_id -id')
+    .populate({ path : 'owner', select: '-_id -userId', populate : { path : 'plan', select: '-_id' } })
     .exec(function(error, coupon) {
       if(error) {
         console.log(error);
         response.status(500).json(error);
       }else{
+        coupon.claims = [];
         response.status(200).json(coupon);
       }
     });
@@ -123,7 +125,8 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
             { $and: couponCriteria }
           ]
         })
-        .populate('owner')
+        .select('-claims -_id -id')
+        .populate({ path : 'owner', select: '-_id -userId', populate : { path : 'plan', select: '-_id' } })
         .exec(function(error, coupons){
           if(error) return response.status(400).json(error);
           return response.status(200).json(coupons);

@@ -9,7 +9,7 @@ function businessPost(request, response) {
   var business = new Business();
 
   business.name = body.name;
-  business.clientId = body.clientId;
+  business.userId = body.userId;
   business.hasBranches = body.hasBranches;
   business.subscription = body.subscription;
   business.basicData = body.basicData;

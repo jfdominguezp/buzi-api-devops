@@ -13,7 +13,7 @@ var BusinessSchema = new Schema(
   {
     shortId: {type: String, unique: true, default: shortId.generate},
     name: { type: String, required: true },
-    clientId: { type: String, required: true },
+    userId: { type: String, required: true },
     subscription: {
       subscriptionId: { type: String, required: true },
       active: { type: Boolean, required: true },

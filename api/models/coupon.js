@@ -22,7 +22,8 @@ var CouponSchema = new Schema(
       person: { type: String, required: true },
       code: { type: String, required: true },
       status: { type: String, default: 'Unused' }
-    }]
+    }],
+    claimedCoupons: { type: Number, default: 0 }
   },
   {
     toObject: { virtuals: true },
@@ -38,7 +39,7 @@ CouponSchema.virtual('owner', {
 });
 
 CouponSchema.virtual('availableCoupons').get(function() {
-  return this.coupons - this.claims.length;
+  return this.coupons - this.claimedCoupons;
 });
 
 CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
@@ -56,6 +57,7 @@ CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
         person: personId,
         code: newCode
       });
+      coupon.claimedCoupons++;
       return coupon.save(cb);
     });
 }
