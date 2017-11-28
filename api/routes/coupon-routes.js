@@ -10,6 +10,7 @@ var router = express.Router();
 router.get('/', couponsGetFiltered).post('/', couponPost);
 router.get('/:id', couponGet);
 router.put('/:id/claim', claimCoupon);
+router.put('/:id/use', useCoupon);
 
 function couponPost(request, response) {
   var body = request.body;
@@ -53,6 +54,7 @@ function couponGet(request, response) {
 }
 
 function claimCoupon(request, response) {
+  if(!request.body.userId) return response.status(400).json('Bad Request');
   auth0.getPerson(request.body.userId)
     .then(function(users) {
       if(!users || users.length < 1) return response.status(404).json('User not found');
@@ -69,7 +71,6 @@ function claimCoupon(request, response) {
       return response.status(401).json(error);
     });
 }
-
 
 function getAllActiveCoupons(request, response) {
   Coupon.find({ })
@@ -132,6 +133,14 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
           return response.status(200).json(coupons);
         });
     });
+}
+
+function useCoupon(request, response) {
+  if(!request.body.code || !request.body.businessId) return response.status(400).json('Bad Request');
+  Coupon.useCode(request.body.businessId, request.params.id, request.body.code, function(error, res) {
+    if(error) return response.status(404).json(error);
+    response.status(200).json(res);
+  });
 }
 
 module.exports = router;
