@@ -7,7 +7,7 @@ var Schema = mongoose.Schema;
 var CouponSchema = new Schema(
   {
     shortId: { type: String, unique: true, default: shortId.generate },
-    businessId: {type: String,  required: true},
+    businessId: { type: String,  required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     category: { type: String, required: true },
@@ -19,10 +19,11 @@ var CouponSchema = new Schema(
     initialDate: { type: Date, required: true },
     finalDate: { type: Date, required: true },
     claims: [{
-      person: { type: String, required: true, unique: true },
-      code: { type: String, required: true, unique: true },
+      person: { type: String, required: true },
+      code: { type: String, required: true },
       status: { type: String, default: 'Unused' }
-    }]
+    }],
+    claimedCoupons: { type: Number, default: 0 }
   },
   {
     toObject: { virtuals: true },
@@ -38,7 +39,7 @@ CouponSchema.virtual('owner', {
 });
 
 CouponSchema.virtual('availableCoupons').get(function() {
-  return this.coupons - this.claims.length;
+  return this.coupons - this.claimedCoupons;
 });
 
 CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
@@ -56,9 +57,24 @@ CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
         person: personId,
         code: newCode
       });
+      coupon.claimedCoupons++;
       return coupon.save(cb);
     });
 }
+
+CouponSchema.statics.useCode = function(businessId, couponId, code, cb) {
+  return this.update(
+    { $and: [ { 'businessId': businessId }, { 'shortId': couponId }, { 'claims.code': code }, { 'claims.status': 'Unused' } ] },
+    { $set: { 'claims.$.status': 'Used' } },
+    function(error, numAffected) {
+      if(error) return cb(error, null);
+      console.log(numAffected);
+      if(numAffected.nModified == 0) return cb('Code does not exist or has been already used');
+      return cb(null, { coupon: couponId, code: code });
+    });
+}
+
+
 
 
 module.exports = mongoose.model('Coupon', CouponSchema);

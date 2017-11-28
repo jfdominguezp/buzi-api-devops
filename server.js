@@ -9,7 +9,7 @@ var couponRoutes = require('./api/routes/coupon-routes');
 var subscriptionRoutes = require('./api/routes/subscription-routes');
 
 //Config
-var config       = require('./config/server-config');
+var config = require('./config/server-config');
 
 //App
 var port = process.env.PORT || 8080;
