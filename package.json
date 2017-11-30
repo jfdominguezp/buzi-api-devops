@@ -6,6 +6,7 @@
         "auth0": "^2.8.0",
         "auth0-js": "^8.11.3",
         "body-parser": "~1.18.2",
+        "cors": "^2.8.4",
         "dateformat": "^3.0.2",
         "express": "~4.16.0",
         "lodash": "^4.17.4",

@@ -2,6 +2,7 @@
 var express    = require('express');
 var bodyParser = require('body-parser');
 var mongoose   = require('mongoose');
+var cors       = require('cors');
 
 //Routes
 var businessRoutes = require('./api/routes/business-routes');
@@ -31,6 +32,20 @@ router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
 
 app.use('/api', router);
+
+var whitelist = ['http://localhost:4200']
+var corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true;
+}
+
+app.use(cors(corsOptions));
 
 app.listen(port);
 console.log('Magic happens on port ' + port);
