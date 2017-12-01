@@ -10,7 +10,7 @@ var router = express.Router();
 router.get('/', couponsGetFiltered).post('/', couponPost);
 router.get('/:id', couponGet);
 router.put('/:id/claim', claimCoupon);
-router.put('/:id/use', useCoupon);
+//router.put('/:id/use', useCoupon);
 
 function couponPost(request, response) {
   var body = request.body;

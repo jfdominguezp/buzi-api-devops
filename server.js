@@ -27,13 +27,11 @@ mongoose.connect(config.mongoURI[app.settings.env], {useMongoClient: true}, func
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.use('/business', businessRoutes);
+//router.use('/business', businessRoutes);
 router.use('/coupon', couponRoutes);
-router.use('/subscription', subscriptionRoutes);
+//router.use('/subscription', subscriptionRoutes);
 
-app.use('/api', router);
-
-var whitelist = ['http://localhost:4200']
+var whitelist = ['https://mistercupon.co', 'https://www.mistercupon.co', 'https://mrcupon.co', 'https://www.mrcupon.co']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
@@ -42,12 +40,28 @@ var corsOptions = {
       callback(new Error('Not allowed by CORS'))
     }
   },
-  credentials: true;
+  credentials: true
 }
 
 app.use(cors(corsOptions));
 
+function checkHTTPS(request, response, next){
+  if (!request.get('x-arr-ssl')){
+    return response.status(401).json('HTTPS required');
+  }
+  next();
+}
+
+if(app.settings.env !== 'development'){
+  app.use(checkHTTPS);
+}
+
+app.use('/api', router);
+
+
 app.listen(port);
-console.log('Magic happens on port ' + port);
+if(app.settings.env == 'development'){
+  console.log('Magic happens on port ' + port);
+}
 
 module.exports = app;
