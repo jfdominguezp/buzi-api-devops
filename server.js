@@ -32,7 +32,7 @@ router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
 
 /*
-var whitelist = ['https://mistercupon.co', 'https://www.mistercupon.co', 'https://mrcupon.co', 'https://www.mrcupon.co']
+var whitelist = ['https://mistercupon.co', 'https://www.mistercupon.co', 'https://mrcupon.co', 'https://www.mrcupon.co', 'http://localhost:4200']
 var corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
