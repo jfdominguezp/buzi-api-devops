@@ -14,7 +14,7 @@ var testRoutes = require('./api/routes/test-routes');
 var config = require('./config/server-config');
 
 //App
-var port = process.env.PORT || 8080;
+var port = process.env.PORT;
 var app = express();
 var router = express.Router();
 
