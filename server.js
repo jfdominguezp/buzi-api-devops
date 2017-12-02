@@ -8,6 +8,7 @@ var cors       = require('cors');
 var businessRoutes = require('./api/routes/business-routes');
 var couponRoutes = require('./api/routes/coupon-routes');
 var subscriptionRoutes = require('./api/routes/subscription-routes');
+var testRoutes = require('./api/routes/test-routes');
 
 //Config
 var config = require('./config/server-config');
@@ -30,6 +31,7 @@ router.use(bodyParser.json());
 router.use('/business', businessRoutes);
 router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
+router.use('/test', testRoutes);
 
 /*
 var whitelist = ['https://mistercupon.co', 'https://www.mistercupon.co', 'https://mrcupon.co', 'https://www.mrcupon.co', 'http://localhost:4200']
