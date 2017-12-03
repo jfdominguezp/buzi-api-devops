@@ -40,7 +40,7 @@ var BusinessSchema = new Schema(
     internetData: {
       website: String,
       facebookUser: String,
-      intagramUser: String
+      instagramUser: String
     },
     branches: [BranchSchema],
     coupons: [{ couponId: String }]
