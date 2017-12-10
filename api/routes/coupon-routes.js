@@ -10,7 +10,7 @@ var router = express.Router();
 router.get('/', couponsGetFiltered).post('/', couponPost);
 router.get('/:id', couponGet);
 router.put('/:id/claim', claimCoupon);
-//router.put('/:id/use', useCoupon);
+router.put('/:id/use', useCoupon);
 
 function couponPost(request, response) {
   var body = request.body;
@@ -137,9 +137,13 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
 
 function useCoupon(request, response) {
   if(!request.body.code || !request.body.businessId) return response.status(400).json('Bad Request');
-  Coupon.useCode(request.body.businessId, request.params.id, request.body.code, function(error, res) {
-    if(error) return response.status(404).json(error);
-    response.status(200).json(res);
+  Business.findOne({ userId: request.body.businessId }, 'shortId', function(error, business) {
+    if(error) return response.status(500).json('Error');
+    if(!business || !business.shortId) return response.status(404).json('The specified business does not exist');
+    Coupon.useCode(business.shortId, request.params.id, request.body.code, function(error, res) {
+      if(error) return response.status(404).json(error);
+      response.status(200).json(res);
+    });
   });
 }
 
