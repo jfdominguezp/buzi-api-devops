@@ -1,5 +1,6 @@
 var express = require('express');
 var Coupon = require('../models/coupon');
+var CouponUse = require('../models/coupon-use');
 var Business = require('../models/business');
 var mailing = require('../middleware/mailing.js');
 var auth0 = require('../middleware/auth.js');
@@ -136,14 +137,23 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
 }
 
 function useCoupon(request, response) {
-  if(!request.body.code || !request.body.businessId) return response.status(400).json('Bad Request');
-  Business.findOne({ userId: request.body.businessId }, 'shortId', function(error, business) {
-    if(error) return response.status(500).json('Error');
-    if(!business || !business.shortId) return response.status(404).json('The specified business does not exist');
-    Coupon.useCode(business.shortId, request.params.id, request.body.code, function(error, res) {
-      if(error) return response.status(404).json(error);
-      response.status(200).json(res);
-    });
+  if(!request.body.code || !request.body.businessId || !request.params.id) return response.status(400).json('Bad Request');
+  Business.findOne({ userId: request.body.businessId }, 'shortId' , function(error, business) {
+    if(error) return response.status(400).json(error);
+    if(!business || !business.shortId) return response.status(404).json('Specified business does not exist');
+    return Coupon.findOne({ 'businessId': business.shortId, 'shortId': request.params.id, 'claims.code': request.body.code },
+      function(error, coupon) {
+        if(error) return response.status(400).json(error);
+        if(!coupon)  return response.status(404).json('Invalid coupon Id or claim code');
+        var couponUse = new CouponUse();
+        couponUse.businessId = request.body.businessId;
+        couponUse.couponId = request.params.id;
+        couponUse.code = request.body.code;
+        couponUse.save(function(error, couponUse) {
+          if(error) return response.status(404).json('Code already used');
+          return response.status(200).json({ coupon: request.params.id, code: request.body.code });
+        });
+      });
   });
 }
 

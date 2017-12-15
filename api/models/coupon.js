@@ -65,17 +65,6 @@ CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
     });
 }
 
-CouponSchema.statics.useCode = function(businessId, couponId, code, cb) {
-  return this.update(
-    { $and: [ { 'businessId': businessId }, { 'shortId': couponId }, { 'claims.code': code }, { 'claims.status': 'Unused' } ] },
-    { $set: { 'claims.$.status': 'Used', 'claims.$.useDate': new Date() } },
-    function(error, numAffected) {
-      if(error) return cb(error, null);
-      if(numAffected.nModified == 0) return cb('Code does not exist or has been already used');
-      return cb(null, { coupon: couponId, code: code });
-    });
-}
-
 
 
 
