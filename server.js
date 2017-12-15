@@ -3,6 +3,7 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 var mongoose   = require('mongoose');
 var cors       = require('cors');
+var Raven = require('raven');
 
 //Routes
 var businessRoutes = require('./api/routes/business-routes');
@@ -18,6 +19,11 @@ var port = process.env.PORT || 80;
 var app = express();
 var router = express.Router();
 
+//Configure Raven
+Raven.config('https://b60807bc8af9464887923d18185963a2:ab5e268daa0b47ed8cf91e3ce55cf83e@sentry.io/259670').install();
+app.use(Raven.requestHandler());
+
+
 mongoose.connect(config.mongoURI[app.settings.env], {useMongoClient: true}, function(err, res) {
   if(err) {
     console.log('Error connecting to the database. ' + err);
@@ -31,7 +37,7 @@ router.use(bodyParser.json());
 router.use('/business', businessRoutes);
 router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
-router.use('/test', testRoutes);
+//router.use('/test', testRoutes);
 
 /*
 var whitelist = ['https://mistercupon.co', 'https://www.mistercupon.co', 'https://mrcupon.co', 'https://www.mrcupon.co', 'http://localhost:4200']
@@ -60,6 +66,14 @@ if(app.settings.env !== 'development'){
 }
 
 app.use('/api', router);
+
+app.use(Raven.errorHandler());
+app.use(function onError(err, req, res, next) {
+    // The error id is attached to `res.sentry` to be returned
+    // and optionally displayed to the user for support.
+    res.statusCode = 500;
+    res.end(res.sentry + '\n');
+});
 
 
 app.listen(port);
