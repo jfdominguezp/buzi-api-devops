@@ -149,6 +149,7 @@ function useCoupon(request, response) {
         couponUse.businessId = request.body.businessId;
         couponUse.couponId = request.params.id;
         couponUse.code = request.body.code;
+        couponUse.useDate = new Date();
         couponUse.save(function(error, couponUse) {
           if(error) return response.status(404).json('Code already used');
           return response.status(200).json({ coupon: request.params.id, code: request.body.code });
