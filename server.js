@@ -7,6 +7,7 @@ var Raven = require('raven');
 
 //Routes
 var businessRoutes = require('./api/routes/business-routes');
+var leadRoutes = require('./api/routes/lead-routes');
 var couponRoutes = require('./api/routes/coupon-routes');
 var subscriptionRoutes = require('./api/routes/subscription-routes');
 var testRoutes = require('./api/routes/test-routes');
@@ -37,6 +38,7 @@ router.use(bodyParser.json());
 router.use('/business', businessRoutes);
 router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
+router.use('/leads', leadRoutes);
 //router.use('/test', testRoutes);
 
 /*
