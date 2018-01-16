@@ -13,6 +13,7 @@ var BusinessSchema = new Schema(
   {
     shortId: {type: String, unique: true, default: shortId.generate},
     name: { type: String, required: true },
+    logo: String,
     userId: { type: String, required: true },
     subscription: {
       subscriptionId: { type: String, required: true },
@@ -39,7 +40,7 @@ var BusinessSchema = new Schema(
     internetData: {
       website: String,
       facebookUser: String,
-      intagramUser: String
+      instagramUser: String
     },
     branches: [BranchSchema],
     coupons: [{ couponId: String }]

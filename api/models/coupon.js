@@ -21,7 +21,9 @@ var CouponSchema = new Schema(
     claims: [{
       person: { type: String, required: true },
       code: { type: String, required: true },
-      status: { type: String, default: 'Unused' }
+      status: { type: String, default: 'Unused' },
+      claimDate: { type: Date },
+      useDate: { type: Date }
     }],
     claimedCoupons: { type: Number, default: 0 }
   },
@@ -55,22 +57,11 @@ CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
       }
       coupon.claims.push({
         person: personId,
-        code: newCode
+        code: newCode,
+        claimDate: new Date()
       });
       coupon.claimedCoupons++;
       return coupon.save(cb);
-    });
-}
-
-CouponSchema.statics.useCode = function(businessId, couponId, code, cb) {
-  return this.update(
-    { $and: [ { 'businessId': businessId }, { 'shortId': couponId }, { 'claims.code': code }, { 'claims.status': 'Unused' } ] },
-    { $set: { 'claims.$.status': 'Used' } },
-    function(error, numAffected) {
-      if(error) return cb(error, null);
-      console.log(numAffected);
-      if(numAffected.nModified == 0) return cb('Code does not exist or has been already used');
-      return cb(null, { coupon: couponId, code: code });
     });
 }
 

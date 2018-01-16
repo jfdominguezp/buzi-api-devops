@@ -8,10 +8,12 @@
         "body-parser": "~1.18.2",
         "cors": "^2.8.4",
         "dateformat": "^3.0.2",
+        "email-validator": "^1.1.1",
         "express": "~4.16.0",
         "lodash": "^4.17.4",
         "mongoose": "^4.12.6",
         "randomstring": "^1.1.5",
+        "raven": "^2.3.0",
         "shortid": "^2.2.8"
     }
 }
