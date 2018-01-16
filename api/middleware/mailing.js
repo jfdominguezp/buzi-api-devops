@@ -6,7 +6,8 @@ console.log('Sendgrid API KEY: ' + process.env.SENDGRID_API_KEY);
 sendgrid.setSubstitutionWrappers('{{', '}}');
 
 var mailing = {
-  sendCoupon: sendCoupon
+  sendCoupon: sendCoupon,
+  sendGenericMessage: genericMessage
 }
 
 function sendCoupon(coupon, code, userEmail) {
@@ -36,6 +37,20 @@ function sendCoupon(coupon, code, userEmail) {
     .catch(function(error) {
       console.log(error);
     });
+}
+
+function genericMessage(name, email, subject, message, to) {
+  var message = {
+    from: {
+      name: name,
+      email: email
+    },
+    to: to,
+    subject: subject,
+    text: message
+  };
+
+  return sendgrid.send(message);
 }
 
 module.exports = mailing;
