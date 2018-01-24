@@ -16,8 +16,8 @@ var jwtParams   = {
 function findLocalUser(jwt_payload, connection, done) {
     LocalUser.findOne({ _id: jwt_payload._id, connection: connection }, function(error, user) {
         if(error) return done(error, false);
-        if(user) return done(null, { _id: user._id, email: user.email, connection: user.connection });
-        return done(null, false);
+        if(!user) return done(null, false);
+        return done(null, { _id: user._id, email: user.email, connection: user.connection });
     });
 }
 

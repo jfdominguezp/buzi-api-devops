@@ -17,6 +17,7 @@
         "morgan": "^1.9.0",
         "passport": "^0.4.0",
         "passport-jwt": "^3.0.1",
+        "rand-token": "^0.4.0",
         "randomstring": "^1.1.5",
         "raven": "^2.3.0",
         "shortid": "^2.2.8"

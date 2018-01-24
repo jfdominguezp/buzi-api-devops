@@ -13,6 +13,7 @@ var couponRoutes       = require('./api/routes/coupon-routes');
 var subscriptionRoutes = require('./api/routes/subscription-routes');
 var testRoutes         = require('./api/routes/test-routes');
 var mailRoutes         = require('./api/routes/mail-routes');
+var authRoutes         = require('./api/routes/auth-routes');
 
 //Config
 var config             = require('./config/server-config');
@@ -42,6 +43,8 @@ router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/leads', leadRoutes);
 router.use('/mail', mailRoutes);
+router.use('/auth', authRoutes);
+
 
 app.use(morgan('development'));
 

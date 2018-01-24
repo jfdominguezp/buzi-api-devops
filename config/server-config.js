@@ -7,9 +7,12 @@ config.mongoURI = Object.freeze({
 });
 
 config.authConfig = Object.freeze({
-    jwtSecret: 's3cr3tK3Yf0rMrCup0nS1nc323012018',
-    refreshSecret: 's3cr3tF0rR3fr35h70k3nsS1nc323012018',
-    issuer: 'auth.mrcupon.co'
+    //jwtSecret: 's3cr3tK3Yf0rMrCup0nS1nc323012018',
+    jwtSecret: process.env.JWT_SECRET,
+    //refreshSecret: 's3cr3tF0rR3fr35h70k3nsS1nc323012018',
+    refreshSecret: process.env.REFRESH_SECRET,
+    //issuer: 'auth.mrcupon.co'
+    issuer: process.env.JWT_ISSUER
 });
 
 module.exports = config;

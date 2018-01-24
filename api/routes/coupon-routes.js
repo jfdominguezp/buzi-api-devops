@@ -54,7 +54,7 @@ function couponGet(request, response) {
         });
 }
 
-/*function claimCoupon(request, response) {
+function claimCoupon(request, response) {
     if(!request.body.userId) return response.status(400).json('Bad Request');
     auth0.getPerson(request.body.userId)
         .then(function(users) {
@@ -71,7 +71,7 @@ function couponGet(request, response) {
         .catch(function(error) {
             return response.status(401).json(error);
         });
-}*/
+}
 
 function getAllActiveCoupons(request, response) {
     Coupon.find({ })
