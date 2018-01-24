@@ -16,3 +16,10 @@ config.authConfig = Object.freeze({
 });
 
 module.exports = config;
+
+
+/*
+    Sendgrid API KEY: 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
+    Auth0 Client Id: s1W0vQhTsQboLsVa5Wqq0rxDdjajXkXo
+    Auth0 Client Secret: VXyewxiBmcCHIQa5DV5dOHnAY22c-m1EJ0gcwdt5fY9lQx5KBetwraiyyzMguT5M
+*/

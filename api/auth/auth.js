@@ -33,21 +33,20 @@ var jwtAdminLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
     findLocalUser(jwt_payload, 'Administrators', done);
 });
 
-module.exports = function() {
+passport.use('members', jwtMembersLocal);
+passport.use('businesses', jwtBusinessesLocal);
+passport.use('administrators', jwtAdminLocal);
 
-    passport.use('members', jwtMembersLocal);
-    passport.use('businesses', jwtBusinessesLocal);
-    passport.use('administrators', jwtAdminLocal);
-
-    return {
-        authenticateMember: function() {
-            return passport.authenticate('members', { session: false });
-        },
-        authenticateBusiness: function() {
-            return passport.authenticate('businesses', { session: false });
-        },
-        authenticateAdministrators: function() {
-            return passport.authenticate('administrators', { session: false });
-        }
+var actions = {
+    authenticateMember: function() {
+        return passport.authenticate('members', { session: false });
+    },
+    authenticateBusiness: function() {
+        return passport.authenticate('businesses', { session: false });
+    },
+    authenticateAdministrators: function() {
+        return passport.authenticate('administrators', { session: false });
     }
 };
+
+module.exports = actions;

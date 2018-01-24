@@ -14,6 +14,7 @@ var subscriptionRoutes = require('./api/routes/subscription-routes');
 var testRoutes         = require('./api/routes/test-routes');
 var mailRoutes         = require('./api/routes/mail-routes');
 var authRoutes         = require('./api/routes/auth-routes');
+var memberRoutes       = require('./api/routes/member-routes');
 
 //Config
 var config             = require('./config/server-config');
@@ -44,9 +45,10 @@ router.use('/subscription', subscriptionRoutes);
 router.use('/leads', leadRoutes);
 router.use('/mail', mailRoutes);
 router.use('/auth', authRoutes);
+router.use('/member', memberRoutes);
 
 
-app.use(morgan('development'));
+app.use(morgan('dev'));
 
 app.use(cors());
 
