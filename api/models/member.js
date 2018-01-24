@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var Schema   = mongoose.Schema;
 
 /*
 *   Accounts will be linked in this Schema

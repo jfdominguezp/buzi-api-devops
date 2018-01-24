@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var Schema   = mongoose.Schema;
 
 var SocialUserSchema = new Schema({
     connection: { type: String, enum: ['Facebook', 'Google'], required: true },
