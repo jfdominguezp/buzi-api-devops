@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var bcrypt   = require('bcrypt');
+var Schema   = mongoose.Schema;
 
 var LocalUserSchema = new Schema({
     connection: { type: String, required: true, enum: ['People', 'Businesses', 'Administrators'] },
@@ -11,5 +12,12 @@ var LocalUserSchema = new Schema({
 {
     timestamps: true
 });
+
+LocalUserSchema.methods.passwordMatch = function(password, cb) {
+    bcrypt.compare(password, this.passwordHash, function(error, isMatch) {
+        if(error) return cb(error);
+        return cb(null, isMatch);
+    });
+}
 
 module.exports = mongoose.model('LocalUser', LocalUserSchema);

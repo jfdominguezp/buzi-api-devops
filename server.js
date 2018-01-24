@@ -1,24 +1,25 @@
 //Packages
-var express    = require('express');
-var bodyParser = require('body-parser');
-var mongoose   = require('mongoose');
-var cors       = require('cors');
-var Raven = require('raven');
+var express            = require('express');
+var bodyParser         = require('body-parser');
+var mongoose           = require('mongoose');
+var cors               = require('cors');
+var Raven              = require('raven');
+var morgan             = require('morgan');
 
 //Routes
-var businessRoutes = require('./api/routes/business-routes');
-var leadRoutes = require('./api/routes/lead-routes');
-var couponRoutes = require('./api/routes/coupon-routes');
+var businessRoutes     = require('./api/routes/business-routes');
+var leadRoutes         = require('./api/routes/lead-routes');
+var couponRoutes       = require('./api/routes/coupon-routes');
 var subscriptionRoutes = require('./api/routes/subscription-routes');
-var testRoutes = require('./api/routes/test-routes');
-var mailRoutes = require('./api/routes/mail-routes');
+var testRoutes         = require('./api/routes/test-routes');
+var mailRoutes         = require('./api/routes/mail-routes');
 
 //Config
-var config = require('./config/server-config');
+var config             = require('./config/server-config');
 
 //App
-var port = process.env.PORT || 80;
-var app = express();
+var port     = process.env.PORT || 80;
+var app        = express();
 var router = express.Router();
 
 //Configure Raven
@@ -27,10 +28,10 @@ app.use(Raven.requestHandler());
 
 
 mongoose.connect(config.mongoURI[app.settings.env], {useMongoClient: true}, function(err, res) {
-  if(err) {
-    console.log('Error connecting to the database. ' + err);
-  } else if(app.settings.env !== 'test')
-    console.log('Connected to Database: ' + config.mongoURI[app.settings.env]);
+    if(err) {
+        console.log('Error connecting to the database. ' + err);
+    } else if(app.settings.env !== 'test')
+        console.log('Connected to Database: ' + config.mongoURI[app.settings.env]);
 });
 
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -41,32 +42,20 @@ router.use('/coupon', couponRoutes);
 router.use('/subscription', subscriptionRoutes);
 router.use('/leads', leadRoutes);
 router.use('/mail', mailRoutes);
-//router.use('/test', testRoutes);
 
-/*
-var whitelist = ['https://mistercupon.co', 'https://www.mistercupon.co', 'https://mrcupon.co', 'https://www.mrcupon.co', 'http://localhost:4200']
-var corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
-  credentials: true
-}*/
+app.use(morgan('development'));
 
 app.use(cors());
 
 function checkHTTPS(request, response, next){
-  if (!request.get('x-arr-ssl')){
-    return response.status(401).json('HTTPS required');
-  }
-  next();
+    if (!request.get('x-arr-ssl')){
+        return response.status(401).json('HTTPS required');
+    }
+    next();
 }
 
 if(app.settings.env !== 'development'){
-  app.use(checkHTTPS);
+    app.use(checkHTTPS);
 }
 
 app.use('/api', router);
