@@ -5,11 +5,11 @@ router.get('/', getTest);
 router.get('/error', getTestError);
 
 function getTest(request, response) {
-  response.status(200).json('API is working');
+    response.status(200).json('API is working');
 }
 
 function getTestError(request, response) {
-  throw new Error('Broke!');
+    throw new Error('Broke!');
 }
 
 module.exports = router;
