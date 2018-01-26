@@ -28,7 +28,7 @@ function login(request, response) {
         if(error) return response.status(401).json('Authentication Error');
         if(!user) return response.status(404).json('User does not exist');
 
-        var tokenSet = { accessToken: issueAccessToken(user), refreshToken: randtoken.generate(16) };
+        var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
 
         storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
             if(error || !data) response.status(401).json('Auth error');
@@ -49,7 +49,7 @@ function token(request, response) {
             LocalUser.findOne({ _id: userId }, function(error, user) {
                 if(error) return response.status(401).json(error);
                 if(!user) return response.status(404).json('User does not exist');
-                return response.status(200).json({ accessToken: issueAccessToken(user) });
+                return response.status(200).json({ accessToken: issueAccessToken(user, false) });
             });
         }
     });
@@ -72,7 +72,7 @@ function memberSignup(request, response) {
         }];
         member.save(function(error, member) {
             if(error) return response.status(401).json(error);
-            var tokenSet = { accesToken: issueAccessToken(localUser), refreshToken: randtoken.generate(16) };
+            var tokenSet = { accesToken: issueAccessToken(localUser, false), refreshToken: randtoken.generate(16) };
             storeRefreshToken(localUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
                 if(error || !data) response.status(401).json('Auth error');
                 return response.status(200).json({ userData: member, tokens: tokenSet });
@@ -95,11 +95,12 @@ function insertUser(user, connection, cb){
     });
 }
 
-function issueAccessToken(user) {
+function issueAccessToken(user, isSocial) {
     var payload = {
         _id: user._id,
         email: user.email,
-        connection: user.connection
+        connection: user.connection,
+        isSocial: isSocial
     };
 
     var options = {
