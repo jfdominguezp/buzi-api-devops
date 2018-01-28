@@ -17,7 +17,8 @@ var CouponSchema = new Schema({
     coupons: { type: Number, required: true, min: 1 },
     initialDate: { type: Date, required: true },
     finalDate: { type: Date, required: true },
-    claimedCoupons: { type: Number, default: 0 }
+    claimedCoupons: { type: Number, default: 0 },
+    availableCodes: [String]
 },
 {
     toObject: { virtuals: true },
@@ -55,5 +56,15 @@ CouponSchema.statics.claimCoupon = function(couponId, personId, cb) {
             return coupon.save(cb);
         });
 }
+
+CouponSchema.statics.getCodes = function() {
+    var codesArray = [];
+    var code = '';
+    while(codesArray.length < process.env.COUPON_CODES_NUMBER) {
+        code = randomString.generate({ length: 5, capitalization: 'uppercase' });
+        if (codesArray.indexOf(code) === -1) codesArray.push(code);
+    }
+    return codesArray;
+};
 
 module.exports = mongoose.model('Coupon', CouponSchema);

@@ -28,6 +28,7 @@ function couponPost(request, response) {
     coupon.coupons = body.coupons;
     coupon.initialDate = body.initialDate;
     coupon.finalDate = body.finalDate;
+    coupon.availableCodes = Coupon.getCodes();
 
     coupon.save(function(error, data){
         if(error) {
