@@ -2,6 +2,7 @@ var passport    = require('passport');
 var config      = require('../../config/server-config');
 var LocalUser   = require('../models/local-user');
 var SocialUser  = require('../models/social-user');
+var Member      = require('../models/member');
 
 //JWT Strategy Variables
 var passportJwt = require('passport-jwt');
@@ -22,7 +23,24 @@ function findLocalUser(jwt_payload, connection, done) {
 }
 
 var jwtMembersLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
-    findLocalUser(jwt_payload, 'People', done);
+    LocalUser.findOne({ _id: jwt_payload._id, connection: 'People' }, function(error, user) {
+        if(error) return done(error, false);
+        if(!user) return done(null, false);
+        Member.findOne({ 'identities.userId': user._id, 'identities.provider': 'Local' }, function(error, member) {
+            if(error) return done(error, false);
+            if(!member) return done(null, false);
+
+            var memberData = {
+                memberId: member._id,
+                name: member.name,
+                familyName: member.familyName,
+                email: member.email,
+                claimTimes: member.claimTimes,
+                userId: user._id
+            };
+            return done(null, memberData);
+        });
+    });
 });
 
 var jwtBusinessesLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
