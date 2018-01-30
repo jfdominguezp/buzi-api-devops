@@ -14,6 +14,7 @@ var jwtParams   = {
     issuer: config.authConfig.issuer
 };
 
+//JWT Local Strategy
 function findLocalUser(jwt_payload, connection, done) {
     LocalUser.findOne({ _id: jwt_payload._id, connection: connection }, function(error, user) {
         if(error) return done(error, false);
@@ -55,6 +56,16 @@ passport.use('members', jwtMembersLocal);
 passport.use('businesses', jwtBusinessesLocal);
 passport.use('administrators', jwtAdminLocal);
 
+
+//Ownership Verification
+function verifyMemberOwnership(request, response, next) {
+    var user = request.user;
+    var memberId = request.body.memberId;
+    if(!memberId) return response.status(400).json('Bad Request');
+    if(memberId !== user.memberId) return response.status(401).json('Unauthorized');
+    return next();
+}
+
 var actions = {
     authenticateMember: function() {
         return passport.authenticate('members', { session: false });
@@ -64,7 +75,8 @@ var actions = {
     },
     authenticateAdministrators: function() {
         return passport.authenticate('administrators', { session: false });
-    }
+    },
+    verifyMemberOwnership: verifyMemberOwnership
 };
 
 module.exports = actions;
