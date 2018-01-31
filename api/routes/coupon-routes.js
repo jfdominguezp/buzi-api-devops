@@ -11,7 +11,7 @@ var router          = express.Router();
 
 router.get('/', couponsGetFiltered).post('/', couponPost);
 router.get('/:id', couponGet);
-router.put('/:id/claim', [auth.authenticateMember, auth.verifyMemberOwnership], claimCoupon);
+router.put('/:id/claim', [auth.authenticateMember(), auth.verifyMemberOwnership], claimCoupon);
 router.put('/:id/use', useCoupon);
 
 //POST Methods
@@ -19,7 +19,6 @@ function couponPost(request, response) {
     var body = request.body;
 
     var coupon = new Coupon(body);
-    coupon.availableCodes = Coupon.getCodes();
 
     coupon.save(function(error, data){
         if(error) {
@@ -114,7 +113,20 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
 //PUT Methods
 function claimCoupon(request, response) {
     var user = request.user;
-    var claim = new CouponClaim();
+
+    Coupon.findOne({ shortId: request.params.id }, function(error, coupon) {
+        if(error) return response.status(400).json(error);
+        if(!coupon) return response.status(404).json('Coupon not found');
+        if(coupon.finalDate < Date.now()) return response.status(403).json('Coupon expired');
+
+        CouponClaim.claimCoupon(coupon.shortId, coupon.businessId, user.memberId, coupon.coupons, process.env.MAX_MEMBER_CLAIMS, function(error, claim) {
+            if(error) return response.status(400).json(error);
+            if(!claim) return response.status(404).json('Can not claim');
+            return response.status(200).json(claim);
+        });
+
+    });
+
 }
 
 function useCoupon(request, response) {

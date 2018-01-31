@@ -62,7 +62,7 @@ function verifyMemberOwnership(request, response, next) {
     var user = request.user;
     var memberId = request.body.memberId;
     if(!memberId) return response.status(400).json('Bad Request');
-    if(memberId !== user.memberId) return response.status(401).json('Unauthorized');
+    if(memberId != user.memberId) return response.status(401).json('Unauthorized');
     return next();
 }
 

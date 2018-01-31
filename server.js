@@ -20,7 +20,7 @@ var memberRoutes       = require('./api/routes/member-routes');
 var config             = require('./config/server-config');
 
 //App
-var port     = process.env.PORT || 80;
+var port     = process.env.PORT || 3000;
 var app        = express();
 var router = express.Router();
 
