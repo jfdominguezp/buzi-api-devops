@@ -24,13 +24,10 @@ CouponClaimSchema.statics.claimCoupon = function(coupon, business, member, maxCl
     var newClaim = new CouponClaim();
     this.find({ couponId: coupon }, function(error, allClaims) {
         if(error) return cb(error);
-        console.log(allClaims);
-        console.log(maxClaims);
         if(allClaims.length >= maxClaims) return cb('Max claims reached');
-        console.log(member);
-        var memberClaims = _.filter(allClaims, { memberId: member });
-        console.log(memberClaims);
-        console.log(claimTimes);
+        var memberClaims = _.filter(allClaims, function(claim) {
+            return claim.memberId == member;
+        });
         if(memberClaims.length >= claimTimes) return cb("Member can not claim this coupon");
 
         var code = randomString.generate({ length: 5, capitalization: 'uppercase' });
