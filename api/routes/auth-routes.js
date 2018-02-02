@@ -10,7 +10,33 @@ var router       = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup);
 
-//POST Functions
+//Member Functions
+function memberSignup(request, response) {
+    var user = request.body;
+    if(!user || !user.name || !user.familyName || !user.email) {
+        return response.status(400).json('Incomplete profile');
+    }
+    insertUser(user, 'People', function(error, localUser) {
+        if(error) return response.status(401).json(error);
+        var member = new Member();
+        member.name = user.name;
+        member.familyName = user.familyName;
+        member.identities = [{
+            userId: localUser._id,
+            provider: 'Local',
+            isSocial: false
+        }];
+        member.save(function(error, member) {
+            if(error) return response.status(401).json(error);
+            var tokenSet = { accesToken: issueAccessToken(localUser, false), refreshToken: randtoken.generate(16) };
+            storeRefreshToken(localUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                if(error || !data) response.status(401).json('Auth error');
+                return response.status(200).json({ userData: member, tokens: tokenSet });
+            });
+        });
+    });
+}
+
 function memberLogin(request, response) {
     if(!request.body.password || (!request.body.email && !request.body.username)) {
         return response.status(400).json('Incomplete credentials');
@@ -39,6 +65,34 @@ function memberLogin(request, response) {
     });
 }
 
+//Business Functions
+function businessSignup(request, response) {
+    var body = request.body;
+    if(!body || !body.email || !body.username || !body.password) {
+        return response.status(400).json('Incomplete credentials');
+    }
+    var business = new Business(body);
+
+    business.validate(function(error) {
+        if(error) return response.status(400).json('Bad business data');
+        insertUser(body, 'Businesses', function(error, user) {
+            if(error) return response.status(401).json(error);
+            if(!user) return response.status(500).json('Unexpected error');
+            this.userId = user._id;
+            this.save(function(error, business) {
+                if(error) return response.status(401).json(error);
+                var tokenSet = { accesToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
+                storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                    if(error || !data) response.status(401).json('Auth error');
+                    var businessData = { name: business.name, logo: business.logo, shortId: business.shortId };
+                    return response.status(200).json({ userData: businessData, tokens: tokenSet });
+                });
+            });
+
+        });
+    });
+}
+
 function token(request, response) {
     var refresh = request.body.refreshToken;
     var userId  = request.body.userId;
@@ -57,33 +111,6 @@ function token(request, response) {
         }
     });
 }
-
-function memberSignup(request, response) {
-    var user = request.body;
-    if(!user || !user.name || !user.familyName || !user.email) {
-        return response.status(400).json('Incomplete profile');
-    }
-    insertUser(user, 'People', function(error, localUser) {
-        if(error) return response.status(401).json(error);
-        var member = new Member();
-        member.name = user.name;
-        member.familyName = user.familyName;
-        member.identities = [{
-            userId: localUser._id,
-            provider: 'Local',
-            isSocial: false
-        }];
-        member.save(function(error, member) {
-            if(error) return response.status(401).json(error);
-            var tokenSet = { accesToken: issueAccessToken(localUser, false), refreshToken: randtoken.generate(16) };
-            storeRefreshToken(localUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                if(error || !data) response.status(401).json('Auth error');
-                return response.status(200).json({ userData: member, tokens: tokenSet });
-            });
-        });
-    });
-}
-
 
 //Utility Functions
 function insertUser(user, connection, cb){
@@ -105,6 +132,8 @@ function issueAccessToken(user, isSocial) {
         connection: user.connection,
         isSocial: isSocial
     };
+
+    if(user.username) payload.username = user.username;
 
     var options = {
         expiresIn: 900,

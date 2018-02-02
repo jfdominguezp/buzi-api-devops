@@ -8,17 +8,7 @@ router.get('/:userId/coupons', getBusinessCoupons);
 
 function businessPost(request, response) {
     var body = request.body;
-    var business = new Business();
-
-    business.name = body.name;
-    business.logo = body.logo;
-    business.userId = body.userId;
-    business.hasBranches = body.hasBranches;
-    business.subscription = body.subscription;
-    business.basicData = body.basicData;
-    business.contactData = body.contactData;
-    business.internetData = body.internetData;
-    business.branches = body.branches;
+    var business = new Business(body);
 
     business.save(function(error, data){
         if(error) {
