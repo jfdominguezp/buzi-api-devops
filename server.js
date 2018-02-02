@@ -29,7 +29,7 @@ Raven.config('https://b60807bc8af9464887923d18185963a2:ab5e268daa0b47ed8cf91e3ce
 app.use(Raven.requestHandler());
 
 
-mongoose.connect(config.mongoURI[app.settings.env], {useMongoClient: true}, function(err, res) {
+mongoose.connect(config.mongoURI[app.settings.env], function(err, res) {
     if(err) {
         console.log('Error connecting to the database. ' + err);
     } else if(app.settings.env !== 'test')

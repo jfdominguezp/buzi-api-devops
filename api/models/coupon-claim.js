@@ -14,10 +14,29 @@ var CouponClaimSchema = new Schema({
     }]
 },
 {
-    timestamps: true
+    timestamps: true,
+    toObject: { virtuals: true },
+    toJSON: { virtuals: true }
 });
 
 CouponClaimSchema.index({ couponId: 1, couponCode: 1 }, { unique: true });
+
+CouponClaimSchema.virtual('coupon', {
+    ref: 'Coupon',
+    localField: 'couponId',
+    foreignField: 'shortId',
+    justOne: true
+});
+
+CouponClaimSchema.virtual('business', {
+    ref: 'Business',
+    localField: 'businessId',
+    foreignField: 'shortId',
+    justOne: true
+});
+
+
+//Static Methods
 
 CouponClaimSchema.statics.claimCoupon = function(coupon, business, member, maxClaims, claimTimes, cb) {
     var CouponClaim = mongoose.model('CouponClaim', CouponClaimSchema);
@@ -46,6 +65,38 @@ CouponClaimSchema.statics.claimCoupon = function(coupon, business, member, maxCl
             return cb(null, claim);
         });
     });
+}
+
+CouponClaimSchema.statics.getClaimsByMember = function(member, cb) {
+    var CouponClaim = mongoose.model('CouponClaim', CouponClaimSchema);
+    var newClaim = new CouponClaim();
+    var populate = [
+        {
+            path: 'coupon',
+            model: 'Coupon',
+            select: 'shortId businessId name category productImages'
+        },
+        {
+            path: 'business',
+            model: 'Business',
+            select: 'shortId name logo basicData.mapLocation'
+        }
+    ];
+
+    this.find({ memberId: member })
+        .sort({ createdAt: -1 })
+        .populate(populate)
+        .exec(function(error, claims) {
+            if(error) return cb(error);
+            return cb(null, claims);
+        });
+}
+
+//Instance Methods
+CouponClaimSchema.methods.useCoupon = function(cb) {
+    if(_.find(this.actions, { action: 'Use' })) return cb('Coupon already used');
+    this.actions.push({ action: 'Use' });
+    this.save(cb); 
 }
 
 module.exports = mongoose.model('CouponClaim', CouponClaimSchema);

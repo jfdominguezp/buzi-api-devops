@@ -20,6 +20,7 @@ var CouponSchema = new Schema({
     claimedCoupons: { type: Number, default: 0 }
 },
 {
+    timestamps: true,
     toObject: { virtuals: true },
     toJSON: { virtuals: true }
 });

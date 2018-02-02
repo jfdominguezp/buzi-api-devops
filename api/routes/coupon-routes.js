@@ -113,11 +113,10 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
 //PUT Methods
 function claimCoupon(request, response) {
     var user = request.user;
-
     Coupon.findOne({ shortId: request.params.id }, function(error, coupon) {
         if(error) return response.status(400).json(error);
         if(!coupon) return response.status(404).json('Coupon not found');
-        if(coupon.finalDate < Date.now() || cooupon.initialDate > Date.now()) return response.status(403).json('Inactive coupon');
+        if(coupon.finalDate < Date.now() || coupon.initialDate > Date.now()) return response.status(403).json('Inactive coupon');
 
         CouponClaim.claimCoupon(coupon.shortId, coupon.businessId, user.memberId, coupon.coupons, process.env.MAX_MEMBER_CLAIMS, function(error, claim) {
             if(error) return response.status(400).json(error);
@@ -130,7 +129,7 @@ function claimCoupon(request, response) {
 }
 
 function useCoupon(request, response) {
-
+    
 }
 
 module.exports = router;

@@ -7,6 +7,9 @@ var BranchSchema = new Schema({
     address: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     email: { type: String, required: true }
+},
+{
+    timestamps: true
 });
 
 var BusinessSchema = new Schema({
@@ -45,6 +48,7 @@ var BusinessSchema = new Schema({
     coupons: [{ couponId: String }]
 },
 {
+    timestamps: true,
     toObject: { virtuals: true },
     toJSON: { virtuals: true }
 });
