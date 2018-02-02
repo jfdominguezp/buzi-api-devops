@@ -8,10 +8,10 @@ var Member       = require('../models/member');
 var config       = require('../../config/server-config').authConfig;
 var router       = express.Router();
 
-router.post('/login', login).post('/token', token).post('/signup', memberSignup);
+router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup);
 
 //POST Functions
-function login(request, response) {
+function memberLogin(request, response) {
     if(!request.body.password || (!request.body.email && !request.body.username)) {
         return response.status(400).json('Incomplete credentials');
     }
@@ -27,12 +27,14 @@ function login(request, response) {
     LocalUser.findOne(query, function(error, user){
         if(error) return response.status(401).json('Authentication Error');
         if(!user) return response.status(404).json('User does not exist');
-
         var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
-
-        storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-            if(error || !data) response.status(401).json('Auth error');
-            return response.status(200).json(tokenSet);
+        Member.findOne({ 'identities.userId': user._id, 'identities.provider': 'Local' }, function(error, member) {
+            if(error || !member) return response.status(401).json('Auth error');
+            var newMember = { memberId: member._id, name: member.name, familyName: member.familyName };
+            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                if(error || !data) return response.status(401).json('Auth error');
+                return response.status(200).json({ member: newMember, tokens: tokenSet });
+            });
         });
     });
 }
@@ -49,6 +51,7 @@ function token(request, response) {
             LocalUser.findOne({ _id: userId }, function(error, user) {
                 if(error) return response.status(401).json(error);
                 if(!user) return response.status(404).json('User does not exist');
+                RefreshToken.updateLastAccess(refresh, userId);
                 return response.status(200).json({ accessToken: issueAccessToken(user, false) });
             });
         }
@@ -57,16 +60,16 @@ function token(request, response) {
 
 function memberSignup(request, response) {
     var user = request.body;
-    if(!user || !user.name || !user.family_name || !user.email) {
+    if(!user || !user.name || !user.familyName || !user.email) {
         return response.status(400).json('Incomplete profile');
     }
     insertUser(user, 'People', function(error, localUser) {
         if(error) return response.status(401).json(error);
         var member = new Member();
         member.name = user.name;
-        member.family_name = user.family_name;
+        member.familyName = user.familyName;
         member.identities = [{
-            user_id: localUser._id,
+            userId: localUser._id,
             provider: 'Local',
             isSocial: false
         }];
@@ -116,7 +119,7 @@ function issueAccessToken(user, isSocial) {
 function storeRefreshToken(userId, token, provider, isSocial, cb) {
     var refresh = new RefreshToken();
     refresh.token = token;
-    refresh.user_id = userId;
+    refresh.userId = userId;
     refresh.provider = provider;
     refresh.isSocial = isSocial;
     refresh.save(cb);

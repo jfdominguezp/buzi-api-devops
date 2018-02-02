@@ -18,7 +18,6 @@ function getPerson(userId) {
   return auth0.getUsers({ q: '(identities.connection: "People" OR identities.isSocial: true) AND user_id:' + '"' + userId + '"' });
 }
 
-
 function getBusiness(userId) {
 
 }

@@ -1,33 +1,24 @@
 var express         = require('express');
+var _               = require('lodash');
 var Coupon          = require('../models/coupon');
-var CouponUse       = require('../models/coupon-use');
+var CouponClaim     = require('../models/coupon-claim');
 var Business        = require('../models/business');
 var mailing         = require('../middleware/mailing.js');
 var auth0           = require('../middleware/auth.js');
 var subscriptionIds = require('../util/subscription-ids.json');
-var _               = require('lodash');
+var auth            = require('../auth/auth');
 var router          = express.Router();
 
 router.get('/', couponsGetFiltered).post('/', couponPost);
 router.get('/:id', couponGet);
-router.put('/:id/claim', claimCoupon);
+router.put('/:id/claim', [auth.authenticateMember(), auth.verifyMemberOwnership], claimCoupon);
 router.put('/:id/use', useCoupon);
 
+//POST Methods
 function couponPost(request, response) {
     var body = request.body;
-    var coupon = new Coupon();
 
-    coupon.businessId = body.businessId;
-    coupon.name = body.name;
-    coupon.description = body.description;
-    coupon.category = body.category;
-    coupon.productImages = body.productImages;
-    coupon.termsAndConditions = body.termsAndConditions;
-    coupon.branches = body.branches;
-    coupon.forDelivery = body.forDelivery;
-    coupon.coupons = body.coupons;
-    coupon.initialDate = body.initialDate;
-    coupon.finalDate = body.finalDate;
+    var coupon = new Coupon(body);
 
     coupon.save(function(error, data){
         if(error) {
@@ -39,6 +30,8 @@ function couponPost(request, response) {
     });
 }
 
+
+//GET Methods
 function couponGet(request, response) {
     Coupon.findOne({ 'shortId': request.params.id })
         .select('-claims -_id -id')
@@ -51,25 +44,6 @@ function couponGet(request, response) {
                 coupon.claims = [];
                 response.status(200).json(coupon);
             }
-        });
-}
-
-function claimCoupon(request, response) {
-    if(!request.body.userId) return response.status(400).json('Bad Request');
-    auth0.getPerson(request.body.userId)
-        .then(function(users) {
-            if(!users || users.length < 1) return response.status(404).json('User not found');
-            Coupon.claimCoupon(request.params.id, request.body.userId, function(error, coupon) {
-                if(error) return response.status(400).json(error);
-                if(!coupon) return response.status(404).json('Coupon not found');
-
-                var claim = _.find(coupon.claims, { person: request.body.userId });
-                mailing.sendCoupon(coupon, claim.code, users[0].email);
-                return response.status(200).json({ code: claim.code });
-            });
-        })
-        .catch(function(error) {
-            return response.status(401).json(error);
         });
 }
 
@@ -136,26 +110,26 @@ function queryCoupons(businessCriteria, couponCriteria, request, response) {
         });
 }
 
-function useCoupon(request, response) {
-    if(!request.body.code || !request.body.businessId || !request.params.id) return response.status(400).json('Bad Request');
-    Business.findOne({ userId: request.body.businessId }, 'shortId' , function(error, business) {
+//PUT Methods
+function claimCoupon(request, response) {
+    var user = request.user;
+    Coupon.findOne({ shortId: request.params.id }, function(error, coupon) {
         if(error) return response.status(400).json(error);
-        if(!business || !business.shortId) return response.status(404).json('Specified business does not exist');
-        return Coupon.findOne({ 'businessId': business.shortId, 'shortId': request.params.id, 'claims.code': request.body.code },
-            function(error, coupon) {
-                if(error) return response.status(400).json(error);
-                if(!coupon)    return response.status(404).json('Invalid coupon Id or claim code');
-                var couponUse = new CouponUse();
-                couponUse.businessId = request.body.businessId;
-                couponUse.couponId = request.params.id;
-                couponUse.code = request.body.code;
-                couponUse.useDate = new Date();
-                couponUse.save(function(error, couponUse) {
-                    if(error) return response.status(404).json('Code already used');
-                    return response.status(200).json({ coupon: request.params.id, code: request.body.code });
-                });
-            });
+        if(!coupon) return response.status(404).json('Coupon not found');
+        if(coupon.finalDate < Date.now() || coupon.initialDate > Date.now()) return response.status(403).json('Inactive coupon');
+
+        CouponClaim.claimCoupon(coupon.shortId, coupon.businessId, user.memberId, coupon.coupons, process.env.MAX_MEMBER_CLAIMS, function(error, claim) {
+            if(error) return response.status(400).json(error);
+            if(!claim) return response.status(404).json('Can not claim');
+            return response.status(200).json(claim);
+        });
+
     });
+
+}
+
+function useCoupon(request, response) {
+    
 }
 
 module.exports = router;

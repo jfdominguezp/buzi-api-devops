@@ -1,12 +1,12 @@
-var _ = require('lodash');
-var mongoose = require('mongoose');
+var _            = require('lodash');
+var mongoose     = require('mongoose');
 var randomString = require('randomString');
-var shortId = require('shortid');
-var Schema = mongoose.Schema;
+var shortId      = require('shortid');
+var Schema       = mongoose.Schema;
 
 var CouponSchema = new Schema({
     shortId: { type: String, unique: true, default: shortId.generate },
-    businessId: { type: String,    required: true },
+    businessId: { type: String,  required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },
     category: { type: String, required: true },
@@ -17,16 +17,10 @@ var CouponSchema = new Schema({
     coupons: { type: Number, required: true, min: 1 },
     initialDate: { type: Date, required: true },
     finalDate: { type: Date, required: true },
-    claims: [{
-        person: { type: String, required: true },
-        code: { type: String, required: true },
-        status: { type: String, default: 'Unused' },
-        claimDate: { type: Date },
-        useDate: { type: Date }
-    }],
     claimedCoupons: { type: Number, default: 0 }
 },
 {
+    timestamps: true,
     toObject: { virtuals: true },
     toJSON: { virtuals: true }
 });

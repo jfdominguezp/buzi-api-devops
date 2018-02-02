@@ -6,9 +6,10 @@ var Schema   = mongoose.Schema;
 */
 var MemberSchema = new Schema({
     name: { type: String, trim: true, required: true },
-    family_name: { type: String, trim: true, required: true },
+    familyName: { type: String, trim: true, required: true },
+    claimTimes: { type: Number, default: 1 },
     identities: [{
-        user_id: { type: String, required: true },
+        userId: { type: String, required: true },
         provider: { type: String, required: true, enum: ['Local', 'Facebook', 'Google'] },
         isSocial: { type: Boolean, required: true }
     }]

@@ -20,7 +20,7 @@ var memberRoutes       = require('./api/routes/member-routes');
 var config             = require('./config/server-config');
 
 //App
-var port     = process.env.PORT || 80;
+var port     = process.env.PORT || 3000;
 var app        = express();
 var router = express.Router();
 
@@ -29,7 +29,7 @@ Raven.config('https://b60807bc8af9464887923d18185963a2:ab5e268daa0b47ed8cf91e3ce
 app.use(Raven.requestHandler());
 
 
-mongoose.connect(config.mongoURI[app.settings.env], {useMongoClient: true}, function(err, res) {
+mongoose.connect(config.mongoURI[app.settings.env], function(err, res) {
     if(err) {
         console.log('Error connecting to the database. ' + err);
     } else if(app.settings.env !== 'test')
