@@ -1,4 +1,5 @@
 var express      = require('express');
+var mongoose     = require('mongoose');
 var jwt          = require('jsonwebtoken');
 var randtoken    = require('rand-token');
 var bcrypt       = require('bcrypt');
@@ -8,15 +9,35 @@ var Member       = require('../models/member');
 var config       = require('../../config/server-config').authConfig;
 var router       = express.Router();
 
-router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup);
+router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
+      .post('/business/signup');
 
-//Member Functions
+//Login Functions
+function memberLogin(request, response) {
+    var queryFields = {
+        id: 'identities.userId',
+        provider: 'identities.provider',
+        providerValue: 'Local'
+    };
+    var returnFields = ['_id', 'name', 'familyName'];
+    login(queryFields, returnFields, false, 'People', 'Member', request, response);
+}
+
+function businessLogin(request, response) {
+    var queryFields = {
+        idField: 'identities.userId',
+    };
+    var returnFields = ['shortId', 'name', 'logo'];
+    login(queryFields, returnFields, true, 'Businesses', 'Business', request, response);
+}
+
+//Signup Functions
 function memberSignup(request, response) {
     var user = request.body;
     if(!user || !user.name || !user.familyName || !user.email) {
         return response.status(400).json('Incomplete profile');
     }
-    insertUser(user, 'People', function(error, localUser) {
+    insertUser(user, 'People', false, function(error, localUser) {
         if(error) return response.status(401).json(error);
         var member = new Member();
         member.name = user.name;
@@ -37,35 +58,6 @@ function memberSignup(request, response) {
     });
 }
 
-function memberLogin(request, response) {
-    if(!request.body.password || (!request.body.email && !request.body.username)) {
-        return response.status(400).json('Incomplete credentials');
-    }
-
-    var query = { };
-
-    if(request.body.username) {
-        query['username'] = request.body.username;
-    } else {
-        query['email'] = request.body.email;
-    }
-
-    LocalUser.findOne(query, function(error, user){
-        if(error) return response.status(401).json('Authentication Error');
-        if(!user) return response.status(404).json('User does not exist');
-        var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
-        Member.findOne({ 'identities.userId': user._id, 'identities.provider': 'Local' }, function(error, member) {
-            if(error || !member) return response.status(401).json('Auth error');
-            var newMember = { memberId: member._id, name: member.name, familyName: member.familyName };
-            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                if(error || !data) return response.status(401).json('Auth error');
-                return response.status(200).json({ member: newMember, tokens: tokenSet });
-            });
-        });
-    });
-}
-
-//Business Functions
 function businessSignup(request, response) {
     var body = request.body;
     if(!body || !body.email || !body.username || !body.password) {
@@ -75,7 +67,7 @@ function businessSignup(request, response) {
 
     business.validate(function(error) {
         if(error) return response.status(400).json('Bad business data');
-        insertUser(body, 'Businesses', function(error, user) {
+        insertUser(body, 'Businesses', true, function(error, user) {
             if(error) return response.status(401).json(error);
             if(!user) return response.status(500).json('Unexpected error');
             this.userId = user._id;
@@ -83,7 +75,7 @@ function businessSignup(request, response) {
                 if(error) return response.status(401).json(error);
                 var tokenSet = { accesToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
                 storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                    if(error || !data) response.status(401).json('Auth error');
+                    if(error || !data) response.status(401).json('Login error');
                     var businessData = { name: business.name, logo: business.logo, shortId: business.shortId };
                     return response.status(200).json({ userData: businessData, tokens: tokenSet });
                 });
@@ -93,6 +85,7 @@ function businessSignup(request, response) {
     });
 }
 
+//Refresh Token Functions
 function token(request, response) {
     var refresh = request.body.refreshToken;
     var userId  = request.body.userId;
@@ -112,15 +105,69 @@ function token(request, response) {
     });
 }
 
-//Utility Functions
-function insertUser(user, connection, cb){
-    if(!user || !connection || !user.email || !user.password || (connection !== 'People' && !user.username)) {
+//Generic Functions
+function login(queryFields, returnFields, usernameRequired, connection, model, request, response) {
+    var credentials = { password: request.body.password };
+    if(usernameRequired) {
+        credentials.username = request.body.username;
+    } else {
+        credentials.email = request.body.email;
+    }
+    authenticateCredentials(credentials, usernameRequired, connection, function(error, user) {
+        if(error) return response.status(401).json(error);
+        var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
+        var query = { };
+        query[queryFields.id] = user._id;
+        if(queryFields.provider && queryFields.providerValue) {
+            query[queryFields.provider] = queryFields.providerValue;
+        }
+        mongoose.model(model).findOne(query, function(error, data) {
+            if(error || !data) return response.status(401).json('Auth error');
+            var resData = { };
+            for(i = 0; i < returnFields.length; i++) {
+                resData[returnFields[i]] = data[returnFields[i]];
+            }
+            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                if(error || !data) return response.status(401).json('Login error');
+                return response.status(200).json({ data: resData, tokens: tokenSet });
+            });
+        });
+    });
+}
+
+function authenticateCredentials(credentials, usernameRequired, connection, cb) {
+    if(!credentials.password) return cb('Password required');
+    if(usernameRequired && !credentials.username) return cb('Username required');
+    if(!usernameRequired && !credentials.email) return cb('Email required');
+
+    var query = { connection: connection };
+
+    if(usernameRequired) {
+        query.username = credentials.username
+    } else {
+        query.email = credentials.email
+    }
+
+    LocalUser.findOne(query, function(error, user) {
+        if(error) return cb('Authentication Error');
+        if(!user) return cb('User does not exist');
+        user.passwordMatch(credentials.password, function(error, isMatch) {
+            if(error) return cb(error);
+            if(!isMatch) return cb('Wrong password');
+            return cb(null, user);
+        });
+    });
+
+}
+
+function insertUser(user, connection, usernameRequired, cb){
+    if(!user || !connection || !user.email || !user.password || (usernameRequired && !user.username)) {
         return cb('Invalid credentials', null);
     }
     bcrypt.hash(user.password, 10, function(error, hash) {
         if(error || !hash) return cb(error);
         var newUser = new LocalUser({ email: user.email, passwordHash: hash, connection: connection });
-        if(connection !== 'People') newUser.username = user.username;
+        if(usernameRequired) newUser.username = user.username;
         return newUser.save(cb);
     });
 }
@@ -132,16 +179,12 @@ function issueAccessToken(user, isSocial) {
         connection: user.connection,
         isSocial: isSocial
     };
-
     if(user.username) payload.username = user.username;
-
     var options = {
         expiresIn: 900,
         issuer: config.issuer
     };
-
     var token = jwt.sign(payload, config.jwtSecret, options);
-
     return token;
 }
 
