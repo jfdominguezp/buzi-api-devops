@@ -16,7 +16,11 @@ var BusinessSchema = new Schema({
     shortId: {type: String, unique: true, default: shortId.generate},
     name: { type: String, required: true },
     logo: String,
-    userId: { type: String, required: true },
+    identities: [{
+        userId: { type: String, required: true },
+        provider: { type: String, required: true, enum: ['Local', 'Facebook', 'Google'] },
+        isSocial: { type: Boolean, required: true }
+    }],
     subscription: {
         subscriptionId: { type: String, required: true },
         active: { type: Boolean, required: true },

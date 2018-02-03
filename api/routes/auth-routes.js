@@ -6,86 +6,39 @@ var bcrypt       = require('bcrypt');
 var LocalUser    = require('../models/local-user');
 var RefreshToken = require('../models/refresh-token');
 var Member       = require('../models/member');
+var Business     = require('../models/business');
 var config       = require('../../config/server-config').authConfig;
 var router       = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
-      .post('/business/signup');
+      .post('/business/signup', businessSignup);
 
 //Login Functions
+
 function memberLogin(request, response) {
-    var queryFields = {
-        id: 'identities.userId',
-        provider: 'identities.provider',
-        providerValue: 'Local'
-    };
     var returnFields = ['_id', 'name', 'familyName'];
-    login(queryFields, returnFields, false, 'People', 'Member', request, response);
+    login(returnFields, false, 'People', 'Member', request, response);
 }
 
 function businessLogin(request, response) {
-    var queryFields = {
-        idField: 'identities.userId',
-    };
     var returnFields = ['shortId', 'name', 'logo'];
-    login(queryFields, returnFields, true, 'Businesses', 'Business', request, response);
+    login(returnFields, true, 'Businesses', 'Business', request, response);
 }
 
 //Signup Functions
+
 function memberSignup(request, response) {
-    var user = request.body;
-    if(!user || !user.name || !user.familyName || !user.email) {
-        return response.status(400).json('Incomplete profile');
-    }
-    insertUser(user, 'People', false, function(error, localUser) {
-        if(error) return response.status(401).json(error);
-        var member = new Member();
-        member.name = user.name;
-        member.familyName = user.familyName;
-        member.identities = [{
-            userId: localUser._id,
-            provider: 'Local',
-            isSocial: false
-        }];
-        member.save(function(error, member) {
-            if(error) return response.status(401).json(error);
-            var tokenSet = { accesToken: issueAccessToken(localUser, false), refreshToken: randtoken.generate(16) };
-            storeRefreshToken(localUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                if(error || !data) response.status(401).json('Auth error');
-                return response.status(200).json({ userData: member, tokens: tokenSet });
-            });
-        });
-    });
+    var returnFields = ['_id', 'name', 'familyName'];
+    signup('Member', Member, 'People', returnFields, false, true, request, response);
 }
 
 function businessSignup(request, response) {
-    var body = request.body;
-    if(!body || !body.email || !body.username || !body.password) {
-        return response.status(400).json('Incomplete credentials');
-    }
-    var business = new Business(body);
-
-    business.validate(function(error) {
-        if(error) return response.status(400).json('Bad business data');
-        insertUser(body, 'Businesses', true, function(error, user) {
-            if(error) return response.status(401).json(error);
-            if(!user) return response.status(500).json('Unexpected error');
-            this.userId = user._id;
-            this.save(function(error, business) {
-                if(error) return response.status(401).json(error);
-                var tokenSet = { accesToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
-                storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                    if(error || !data) response.status(401).json('Login error');
-                    var businessData = { name: business.name, logo: business.logo, shortId: business.shortId };
-                    return response.status(200).json({ userData: businessData, tokens: tokenSet });
-                });
-            });
-
-        });
-    });
+    var returnFields = ['shortId', 'name', 'logo'];
+    signup('Business', Business, 'Businesses', returnFields, true, true, request, response);
 }
 
 //Refresh Token Functions
+
 function token(request, response) {
     var refresh = request.body.refreshToken;
     var userId  = request.body.userId;
@@ -106,7 +59,36 @@ function token(request, response) {
 }
 
 //Generic Functions
-function login(queryFields, returnFields, usernameRequired, connection, model, request, response) {
+
+function signup(model, modelSchema, connection, returnFields, usernameRequired, loginAfterSave, request, response) {
+    var body = request.body;
+    var user = new modelSchema(request.body);
+
+    user.validate(function(error) {
+        if(error) return response.status(400).json(error);
+        insertUser(body, connection, usernameRequired, function(error, newUser) {
+            if(error) return response.status(400).json(error);
+            if(!newUser) return response.status(500).json('Unexpected error');
+            var newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
+            user.identities.push(newIdentity);
+            user.save(function(error, data) {
+                if(error) return response.status(400).json(error);
+                if(!loginAfterSave) return response.status(200).json(data);
+                var tokenSet = { accessToken: issueAccessToken(newUser, false), refreshToken: randtoken.generate(16) };
+                var resData = { };
+                for(i = 0; i < returnFields.length; i++) {
+                    resData[returnFields[i]] = data[returnFields[i]];
+                }
+                storeRefreshToken(newUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                    if(error || !data) return response.status(401).json('Login error');
+                    return response.status(200).json({ data: resData, tokens: tokenSet });
+                });
+            });
+        });
+    });
+}
+
+function login(returnFields, usernameRequired, connection, model, request, response) {
     var credentials = { password: request.body.password };
     if(usernameRequired) {
         credentials.username = request.body.username;
@@ -116,11 +98,7 @@ function login(queryFields, returnFields, usernameRequired, connection, model, r
     authenticateCredentials(credentials, usernameRequired, connection, function(error, user) {
         if(error) return response.status(401).json(error);
         var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
-        var query = { };
-        query[queryFields.id] = user._id;
-        if(queryFields.provider && queryFields.providerValue) {
-            query[queryFields.provider] = queryFields.providerValue;
-        }
+        var query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
         mongoose.model(model).findOne(query, function(error, data) {
             if(error || !data) return response.status(401).json('Auth error');
             var resData = { };
