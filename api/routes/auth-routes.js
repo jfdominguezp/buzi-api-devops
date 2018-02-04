@@ -11,7 +11,7 @@ var config       = require('../../config/server-config').authConfig;
 var router       = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
-      .post('/business/signup', businessSignup);
+      .post('/business/signup', businessSignup).post('/business/login', businessLogin);
 
 //Login Functions
 

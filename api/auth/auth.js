@@ -86,7 +86,7 @@ var actions = {
     authenticateBusiness: function() {
         return passport.authenticate('businesses', { session: false });
     },
-    authenticateAdministrators: function() {
+    authenticateAdministrator: function() {
         return passport.authenticate('administrators', { session: false });
     },
     verifyMemberOwnership: verifyMemberOwnership
