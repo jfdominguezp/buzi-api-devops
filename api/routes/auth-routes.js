@@ -5,13 +5,15 @@ var randtoken    = require('rand-token');
 var bcrypt       = require('bcrypt');
 var LocalUser    = require('../models/local-user');
 var RefreshToken = require('../models/refresh-token');
+var VerifyToken  = require('../models/verify-token');
 var Member       = require('../models/member');
 var Business     = require('../models/business');
 var config       = require('../../config/server-config').authConfig;
 var router       = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
-      .post('/business/signup', businessSignup).post('/business/login', businessLogin);
+      .post('/business/signup', businessSignup).post('/business/login', businessLogin)
+      .get('/verify', verifyAccount);
 
 //Login Functions
 
@@ -56,6 +58,31 @@ function token(request, response) {
             });
         }
     });
+}
+
+/*
+ * Verify Account Functions
+ * Query format: ?id=AAAAAAAAA&token=XXXXXXX&p=BBBBB&social=XXXXXX
+ */
+
+function verifyAccount(request, response) {
+    var userId = request.query.id;
+    var token = request.query.token;
+    var provider = request.query.p;
+    var isSocial = request.query.social;
+
+    if(!userId || !token || !provider ||isSocial == null || isSocial == undefined){
+        return response.status(400).json('Bad Request');
+    }
+
+    VerifyToken.useToken(token, userId, provider, isSocial, function(error, token) {
+        if(error) return response.status(400).json(error);
+        return response.status(200).json('OK');
+    });
+}
+
+function startVerification(userId, provider, isSocial) {
+    //TODO
 }
 
 //Generic Functions
