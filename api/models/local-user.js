@@ -22,4 +22,13 @@ LocalUserSchema.methods.passwordMatch = function(password, cb) {
     });
 }
 
+LocalUserSchema.statics.markEmailVerified = function(userId, cb) {
+    this.findOne({ _id: userId }, function(error, user) {
+        if(error) return cb(error);
+        if(!user) return cb('User does not exist');
+        user.email_verified = true;
+        user.save(cb);
+    });
+}
+
 module.exports = mongoose.model('LocalUser', LocalUserSchema);

@@ -5,9 +5,12 @@ sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
 console.log('Sendgrid API KEY: ' + process.env.SENDGRID_API_KEY);
 sendgrid.setSubstitutionWrappers('{{', '}}');
 
+//TODO Configuration variables in config file
+
 var mailing = {
     sendCoupon: sendCoupon,
-    sendGenericMessage: genericMessage
+    sendGenericMessage: genericMessage,
+    sendVerificationEmail: sendVerificationEmail
 }
 
 function sendCoupon(coupon, code, userEmail) {
@@ -34,6 +37,26 @@ function sendCoupon(coupon, code, userEmail) {
         .then(function(data) {
             //Successfully sent
         })
+        .catch(function(error) {
+            console.log(error);
+        });
+}
+
+function sendVerificationEmail(name, email, query) {
+    var message = {
+        from: {
+            name: 'Mr. Cupón',
+            email: 'noreply@mrcupon.co'
+        },
+        to: email,
+        templateId: 'a98d411b-af61-425c-9ff3-41cdbe000e24',
+        substitutions: {
+            'name': name,
+            'query': query
+        }
+    };
+
+    sendgrid.send(message)
         .catch(function(error) {
             console.log(error);
         });

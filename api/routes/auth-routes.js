@@ -9,6 +9,7 @@ var VerifyToken  = require('../models/verify-token');
 var Member       = require('../models/member');
 var Business     = require('../models/business');
 var config       = require('../../config/server-config').authConfig;
+var mailing      = require('../middleware/mailing');
 var router       = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
@@ -77,12 +78,20 @@ function verifyAccount(request, response) {
 
     VerifyToken.useToken(token, userId, provider, isSocial, function(error, token) {
         if(error) return response.status(400).json(error);
-        return response.status(200).json('Verified');
+        LocalUser.markEmailVerified(userId, function(error, user) {
+            if(error) return response.status(500).json(error);
+            return response.status(200).json({ _id: user._id, email_verified: user.email_verified });
+        });
     });
 }
 
-function startVerification(userId, provider, isSocial) {
-    
+function startVerification(userId, provider, isSocial, name, email) {
+    VerifyToken.generateToken(userId, provider, isSocial, function(error, token) {
+        if(!error && token) {
+            var query = '?id=' + userId + '&token=' + token.token + '&p=' + provider + '&social=' + isSocial;
+            mailing.sendVerificationEmail(name, email, query);
+        }
+    });
 }
 
 //Generic Functions
@@ -106,6 +115,7 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
                 for(i = 0; i < returnFields.length; i++) {
                     resData[returnFields[i]] = data[returnFields[i]];
                 }
+                startVerification(newUser._id, 'Local', false, data.name, newUser.email);
                 storeRefreshToken(newUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
                     if(error || !data) return response.status(401).json('Login error');
                     return response.status(200).json({ data: resData, tokens: tokenSet });
