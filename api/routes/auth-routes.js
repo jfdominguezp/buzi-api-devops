@@ -71,18 +71,18 @@ function verifyAccount(request, response) {
     var provider = request.query.p;
     var isSocial = request.query.social;
 
-    if(!userId || !token || !provider ||isSocial == null || isSocial == undefined){
+    if(!userId || !token || !provider || isSocial == null || isSocial == undefined){
         return response.status(400).json('Bad Request');
     }
 
     VerifyToken.useToken(token, userId, provider, isSocial, function(error, token) {
         if(error) return response.status(400).json(error);
-        return response.status(200).json('OK');
+        return response.status(200).json('Verified');
     });
 }
 
 function startVerification(userId, provider, isSocial) {
-    //TODO
+    
 }
 
 //Generic Functions
