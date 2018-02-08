@@ -1,43 +1,68 @@
-var express      = require('express');
-var jwt          = require('jsonwebtoken');
-var randtoken    = require('rand-token');
-var bcrypt       = require('bcrypt');
-var LocalUser    = require('../models/local-user');
-var RefreshToken = require('../models/refresh-token');
-var Member       = require('../models/member');
-var config       = require('../../config/server-config').authConfig;
-var router       = express.Router();
+var express       = require('express');
+var mongoose      = require('mongoose');
+var jwt           = require('jsonwebtoken');
+var randtoken     = require('rand-token');
+var bcrypt        = require('bcrypt');
+var LocalUser     = require('../models/local-user');
+var RefreshToken  = require('../models/refresh-token');
+var VerifyToken   = require('../models/verify-token');
+var ResetToken    = require('../models/reset-token');
+var Member        = require('../models/member');
+var Business      = require('../models/business');
+var config        = require('../../config/server-config').authConfig;
+var mailing       = require('../middleware/mailing');
+var emailValidate = require('email-validator');
+var router        = express.Router();
 
-router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup);
+router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
+      .post('/reset', memberStartReset).post('/business/reset', businessStartReset)
+      .put('/reset', memberEndReset).put('/business/reset', businessEndReset)
+      .post('/business/signup', businessSignup).post('/business/login', businessLogin)
+      .get('/verify', verifyAccount);
 
-//POST Functions
+//Login Functions
+
 function memberLogin(request, response) {
-    if(!request.body.password || (!request.body.email && !request.body.username)) {
-        return response.status(400).json('Incomplete credentials');
-    }
-
-    var query = { };
-
-    if(request.body.username) {
-        query['username'] = request.body.username;
-    } else {
-        query['email'] = request.body.email;
-    }
-
-    LocalUser.findOne(query, function(error, user){
-        if(error) return response.status(401).json('Authentication Error');
-        if(!user) return response.status(404).json('User does not exist');
-        var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
-        Member.findOne({ 'identities.userId': user._id, 'identities.provider': 'Local' }, function(error, member) {
-            if(error || !member) return response.status(401).json('Auth error');
-            var newMember = { memberId: member._id, name: member.name, familyName: member.familyName };
-            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                if(error || !data) return response.status(401).json('Auth error');
-                return response.status(200).json({ member: newMember, tokens: tokenSet });
-            });
-        });
-    });
+    var returnFields = ['_id', 'name', 'familyName'];
+    login(returnFields, false, 'People', 'Member', request, response);
 }
+
+function businessLogin(request, response) {
+    var returnFields = ['shortId', 'name', 'logo'];
+    login(returnFields, true, 'Businesses', 'Business', request, response);
+}
+
+//Password Reset Functions
+
+function businessStartReset(request, response) {
+    startReset('Businesses', request, response);
+}
+
+function memberStartReset(request, response) {
+    startReset('People', request, response);
+}
+
+function businessEndReset(request, response) {
+    endReset('Businesses', request, response);
+}
+
+function memberEndReset(request, response) {
+    endReset('People', request, response);
+}
+
+//Signup Functions
+
+function memberSignup(request, response) {
+    var returnFields = ['_id', 'name', 'familyName'];
+    signup('Member', Member, 'People', returnFields, false, true, request, response);
+}
+
+function businessSignup(request, response) {
+    var returnFields = ['shortId', 'name', 'logo'];
+    signup('Business', Business, 'Businesses', returnFields, true, true, request, response);
+}
+
+//Refresh Token Functions
 
 function token(request, response) {
     var refresh = request.body.refreshToken;
@@ -58,42 +83,164 @@ function token(request, response) {
     });
 }
 
-function memberSignup(request, response) {
-    var user = request.body;
-    if(!user || !user.name || !user.familyName || !user.email) {
-        return response.status(400).json('Incomplete profile');
+/*
+ * Verify Account Functions
+ * Query format: ?id=AAAAAAAAA&token=XXXXXXX&p=BBBBB&social=XXXXXX
+ */
+
+function verifyAccount(request, response) {
+    var userId = request.query.id;
+    var token = request.query.token;
+    var provider = request.query.p;
+    var isSocial = request.query.social;
+
+    if(!userId || !token || !provider || isSocial == null || isSocial == undefined){
+        return response.status(400).json('Bad Request');
     }
-    insertUser(user, 'People', function(error, localUser) {
+
+    VerifyToken.useToken(token, userId, provider, isSocial, function(error, token) {
+        if(error) return response.status(400).json(error);
+        LocalUser.markEmailVerified(userId, function(error, user) {
+            if(error) return response.status(500).json(error);
+            return response.status(200).json({ _id: user._id, email_verified: user.email_verified });
+        });
+    });
+}
+
+function startVerification(userId, provider, isSocial, name, email) {
+    VerifyToken.generateToken(userId, provider, isSocial, function(error, token) {
+        if(!error && token) {
+            var query = 'id=' + userId + '&token=' + token.token + '&p=' + provider + '&social=' + isSocial;
+            mailing.sendVerificationEmail(name, email, query);
+        }
+    });
+}
+
+/*
+ * Reset Password Functions
+ * Query format: ?id=XXXXXX&token=YYYYYY
+ */
+
+function startReset(connection, request, response) {
+    var email = request.body.email;
+    if(!email || !emailValidate.validate(email))  return response.status(400).json('Bad Request');
+    LocalUser.findOne({ email: email, connection: connection }, function(error, user) {
+        if(error) response.status(500).json(error);
+        if(!user) response.status(404).json('User does not exist');
+        ResetToken.generateToken(user._id, function(error, token) {
+            if(error) response.status(500).json(error);
+            var query = 'id=' + user._id + '&token=' + token.token;
+            mailing.sendPasswordReset(email, query);
+        });
+        response.status(200).json('Change Requested');
+    });
+}
+
+function endReset(connection, request, response) {
+    var token = request.body.token;
+    var id = request.body.id;
+    var password = request.body.password;
+
+    if(!token || !id || !password) return response.status(400).json('Bad Request');
+
+    ResetToken.useToken(id, token, function(error, token) {
         if(error) return response.status(401).json(error);
-        var member = new Member();
-        member.name = user.name;
-        member.familyName = user.familyName;
-        member.identities = [{
-            userId: localUser._id,
-            provider: 'Local',
-            isSocial: false
-        }];
-        member.save(function(error, member) {
-            if(error) return response.status(401).json(error);
-            var tokenSet = { accesToken: issueAccessToken(localUser, false), refreshToken: randtoken.generate(16) };
-            storeRefreshToken(localUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
-                if(error || !data) response.status(401).json('Auth error');
-                return response.status(200).json({ userData: member, tokens: tokenSet });
+        LocalUser.changePassword(connection, id, password, function(error, user) {
+            if(error) return response.status(500).json(error);
+            return response.status(200).json('Password Changed');
+        });
+    });
+}
+
+//Generic Functions
+
+function signup(model, modelSchema, connection, returnFields, usernameRequired, loginAfterSave, request, response) {
+    var body = request.body;
+    var user = new modelSchema(request.body);
+
+    user.validate(function(error) {
+        if(error) return response.status(400).json(error);
+        insertUser(body, connection, usernameRequired, function(error, newUser) {
+            if(error) return response.status(400).json(error);
+            if(!newUser) return response.status(500).json('Unexpected error');
+            var newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
+            user.identities.push(newIdentity);
+            user.save(function(error, data) {
+                if(error) return response.status(400).json(error);
+                if(!loginAfterSave) return response.status(200).json(data);
+                var tokenSet = { accessToken: issueAccessToken(newUser, false), refreshToken: randtoken.generate(16) };
+                var resData = { };
+                for(i = 0; i < returnFields.length; i++) {
+                    resData[returnFields[i]] = data[returnFields[i]];
+                }
+                startVerification(newUser._id, 'Local', false, data.name, newUser.email);
+                storeRefreshToken(newUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                    if(error || !data) return response.status(401).json('Login error');
+                    return response.status(200).json({ data: resData, tokens: tokenSet });
+                });
             });
         });
     });
 }
 
+function login(returnFields, usernameRequired, connection, model, request, response) {
+    var credentials = { password: request.body.password };
+    if(usernameRequired) {
+        credentials.username = request.body.username;
+    } else {
+        credentials.email = request.body.email;
+    }
+    authenticateCredentials(credentials, usernameRequired, connection, function(error, user) {
+        if(error) return response.status(401).json(error);
+        var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
+        var query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
+        mongoose.model(model).findOne(query, function(error, data) {
+            if(error || !data) return response.status(401).json('Auth error');
+            var resData = { };
+            for(i = 0; i < returnFields.length; i++) {
+                resData[returnFields[i]] = data[returnFields[i]];
+            }
+            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                if(error || !data) return response.status(401).json('Login error');
+                return response.status(200).json({ data: resData, tokens: tokenSet });
+            });
+        });
+    });
+}
 
-//Utility Functions
-function insertUser(user, connection, cb){
-    if(!user || !connection || !user.email || !user.password || (connection !== 'People' && !user.username)) {
+function authenticateCredentials(credentials, usernameRequired, connection, cb) {
+    if(!credentials.password) return cb('Password required');
+    if(usernameRequired && !credentials.username) return cb('Username required');
+    if(!usernameRequired && !credentials.email) return cb('Email required');
+
+    var query = { connection: connection };
+
+    if(usernameRequired) {
+        query.username = credentials.username
+    } else {
+        query.email = credentials.email
+    }
+
+    LocalUser.findOne(query, function(error, user) {
+        if(error) return cb('Authentication Error');
+        if(!user) return cb('User does not exist');
+        user.passwordMatch(credentials.password, function(error, isMatch) {
+            if(error) return cb(error);
+            if(!isMatch) return cb('Wrong password');
+            return cb(null, user);
+        });
+    });
+
+}
+
+function insertUser(user, connection, usernameRequired, cb){
+    if(!user || !connection || !user.email || !user.password || (usernameRequired && !user.username)) {
         return cb('Invalid credentials', null);
     }
     bcrypt.hash(user.password, 10, function(error, hash) {
         if(error || !hash) return cb(error);
         var newUser = new LocalUser({ email: user.email, passwordHash: hash, connection: connection });
-        if(connection !== 'People') newUser.username = user.username;
+        if(usernameRequired) newUser.username = user.username;
         return newUser.save(cb);
     });
 }
@@ -105,14 +252,12 @@ function issueAccessToken(user, isSocial) {
         connection: user.connection,
         isSocial: isSocial
     };
-
+    if(user.username) payload.username = user.username;
     var options = {
         expiresIn: 900,
         issuer: config.issuer
     };
-
     var token = jwt.sign(payload, config.jwtSecret, options);
-
     return token;
 }
 

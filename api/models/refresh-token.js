@@ -13,6 +13,8 @@ var RefreshTokenSchema = new Schema({
     timestamps: true
 });
 
+RefreshTokenSchema.index({ updatedAt: 1 }, { expires: '10d' });
+
 RefreshTokenSchema.statics.getToken = function(token, userId, cb) {
     this.findOne({ token: token, userId: userId }, function(error, data) {
         if(error) return cb(error, false);

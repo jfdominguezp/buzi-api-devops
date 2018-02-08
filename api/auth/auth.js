@@ -3,6 +3,8 @@ var config      = require('../../config/server-config');
 var LocalUser   = require('../models/local-user');
 var SocialUser  = require('../models/social-user');
 var Member      = require('../models/member');
+var Business    = require('../models/member');
+var Coupon      = require('../models/coupon');
 
 //JWT Strategy Variables
 var passportJwt = require('passport-jwt');
@@ -15,14 +17,6 @@ var jwtParams   = {
 };
 
 //JWT Local Strategy
-function findLocalUser(jwt_payload, connection, done) {
-    LocalUser.findOne({ _id: jwt_payload._id, connection: connection }, function(error, user) {
-        if(error) return done(error, false);
-        if(!user) return done(null, false);
-        return done(null, { _id: user._id, email: user.email, connection: user.connection });
-    });
-}
-
 var jwtMembersLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
     LocalUser.findOne({ _id: jwt_payload._id, connection: 'People' }, function(error, user) {
         if(error) return done(error, false);
@@ -45,7 +39,17 @@ var jwtMembersLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
 });
 
 var jwtBusinessesLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
-    findLocalUser(jwt_payload, 'Businesses', done);
+    LocalUser.findOne({ _id: jwt_payload._id, connection: 'Businesses' }, function(error, user) {
+        if(error) return done(error, false);
+        if(!user) return done(null, false);
+
+        Business.findOne({ userId: user._id }, 'shortId name logo userId -_id', function (error, business) {
+            if(error) return done(error, false);
+            if(!business) return done(null, false);
+
+            return done(null, business);
+        });
+    });
 });
 
 var jwtAdminLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
@@ -66,6 +70,15 @@ function verifyMemberOwnership(request, response, next) {
     return next();
 }
 
+function verifyCouponOwnership(request, response, next) {
+    Coupon.findOne({ shortId: request.params.id }, function(error, coupon) {
+        if(error) return response.status(500).json(error);
+        if(!coupon) return response.status(404).json('Coupon not found');
+        if(coupon.businessId != request.user.shortId) return response.status(403).json('Business does not own the specified coupon');
+        return next();
+    });
+}
+
 var actions = {
     authenticateMember: function() {
         return passport.authenticate('members', { session: false });
@@ -73,7 +86,7 @@ var actions = {
     authenticateBusiness: function() {
         return passport.authenticate('businesses', { session: false });
     },
-    authenticateAdministrators: function() {
+    authenticateAdministrator: function() {
         return passport.authenticate('administrators', { session: false });
     },
     verifyMemberOwnership: verifyMemberOwnership
