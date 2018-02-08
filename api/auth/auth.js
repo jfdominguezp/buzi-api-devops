@@ -3,7 +3,7 @@ var config      = require('../../config/server-config');
 var LocalUser   = require('../models/local-user');
 var SocialUser  = require('../models/social-user');
 var Member      = require('../models/member');
-var Business    = require('../models/member');
+var Business    = require('../models/business');
 var Coupon      = require('../models/coupon');
 
 //JWT Strategy Variables
@@ -42,8 +42,7 @@ var jwtBusinessesLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) 
     LocalUser.findOne({ _id: jwt_payload._id, connection: 'Businesses' }, function(error, user) {
         if(error) return done(error, false);
         if(!user) return done(null, false);
-
-        Business.findOne({ userId: user._id }, 'shortId name logo userId -_id', function (error, business) {
+        Business.findOne({ 'identities.userId': user._id, 'identities.provider': 'Local' }, 'shortId name logo userId -_id', function (error, business) {
             if(error) return done(error, false);
             if(!business) return done(null, false);
 
@@ -89,7 +88,8 @@ var actions = {
     authenticateAdministrator: function() {
         return passport.authenticate('administrators', { session: false });
     },
-    verifyMemberOwnership: verifyMemberOwnership
+    verifyMemberOwnership: verifyMemberOwnership,
+    verifyCouponOwnership: verifyCouponOwnership
 };
 
 module.exports = actions;
