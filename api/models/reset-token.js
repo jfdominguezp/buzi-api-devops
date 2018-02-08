@@ -32,7 +32,7 @@ ResetTokenSchema.statics.generateToken = function(userId, cb) {
 ResetTokenSchema.statics.useToken = function(userId, token, cb) {
     this.findOne({ userId: userId, token: token }, function(error, token) {
         if(error) return cb(error);
-        if(!token) return cb('Invalid token');
+        if(!token) return cb('Invalid id or token');
         if(token.used) return cb('Token used');
         token.used = true;
         return token.save(cb);

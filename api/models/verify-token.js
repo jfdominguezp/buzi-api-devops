@@ -31,7 +31,7 @@ VerifyTokenSchema.statics.generateToken = function(userId, provider, isSocial, c
 VerifyTokenSchema.statics.useToken = function(token, userId, provider, isSocial, cb) {
     this.findOne({ token: token, userId: userId, provider: provider, isSocial: isSocial }, function(error, token) {
         if(error) return cb(error);
-        if(!token) return cb('Invalid token');
+        if(!token) return cb('Invalid id or token');
         if(token.used) return cb('Token used');
         token.used = true;
         return token.save(cb);
