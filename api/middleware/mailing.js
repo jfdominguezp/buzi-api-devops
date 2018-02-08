@@ -10,7 +10,8 @@ sendgrid.setSubstitutionWrappers('{{', '}}');
 var mailing = {
     sendCoupon: sendCoupon,
     sendGenericMessage: genericMessage,
-    sendVerificationEmail: sendVerificationEmail
+    sendVerificationEmail: sendVerificationEmail,
+    sendPasswordReset: sendPasswordReset
 }
 
 function sendCoupon(coupon, code, userEmail) {
@@ -52,6 +53,25 @@ function sendVerificationEmail(name, email, query) {
         templateId: 'a98d411b-af61-425c-9ff3-41cdbe000e24',
         substitutions: {
             'name': name,
+            'query': query
+        }
+    };
+
+    sendgrid.send(message)
+        .catch(function(error) {
+            console.log(error);
+        });
+}
+
+function sendPasswordReset(email, query) {
+    var message = {
+        from: {
+            name: 'Mr. Cupón',
+            email: 'noreply@mrcupon.co'
+        },
+        to: email,
+        templateId: '2e84ede3-2c5d-4128-8b5d-31ad0cca1547',
+        substitutions: {
             'query': query
         }
     };

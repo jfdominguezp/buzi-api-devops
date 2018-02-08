@@ -1,18 +1,22 @@
-var express      = require('express');
-var mongoose     = require('mongoose');
-var jwt          = require('jsonwebtoken');
-var randtoken    = require('rand-token');
-var bcrypt       = require('bcrypt');
-var LocalUser    = require('../models/local-user');
-var RefreshToken = require('../models/refresh-token');
-var VerifyToken  = require('../models/verify-token');
-var Member       = require('../models/member');
-var Business     = require('../models/business');
-var config       = require('../../config/server-config').authConfig;
-var mailing      = require('../middleware/mailing');
-var router       = express.Router();
+var express       = require('express');
+var mongoose      = require('mongoose');
+var jwt           = require('jsonwebtoken');
+var randtoken     = require('rand-token');
+var bcrypt        = require('bcrypt');
+var LocalUser     = require('../models/local-user');
+var RefreshToken  = require('../models/refresh-token');
+var VerifyToken   = require('../models/verify-token');
+var ResetToken    = require('../models/reset-token');
+var Member        = require('../models/member');
+var Business      = require('../models/business');
+var config        = require('../../config/server-config').authConfig;
+var mailing       = require('../middleware/mailing');
+var emailValidate = require('email-validator');
+var router        = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
+      .post('/reset', memberStartReset).post('/business/reset', businessStartReset)
+      .put('/reset', memberEndReset).put('/business/reset', businessEndReset)
       .post('/business/signup', businessSignup).post('/business/login', businessLogin)
       .get('/verify', verifyAccount);
 
@@ -26,6 +30,24 @@ function memberLogin(request, response) {
 function businessLogin(request, response) {
     var returnFields = ['shortId', 'name', 'logo'];
     login(returnFields, true, 'Businesses', 'Business', request, response);
+}
+
+//Password Reset Functions
+
+function businessStartReset(request, response) {
+    startReset('Businesses', request, response);
+}
+
+function memberStartReset(request, response) {
+    startReset('People', request, response);
+}
+
+function businessEndReset(request, response) {
+    endReset('Businesses', request, response);
+}
+
+function memberEndReset(request, response) {
+    endReset('People', request, response);
 }
 
 //Signup Functions
@@ -88,9 +110,45 @@ function verifyAccount(request, response) {
 function startVerification(userId, provider, isSocial, name, email) {
     VerifyToken.generateToken(userId, provider, isSocial, function(error, token) {
         if(!error && token) {
-            var query = '?id=' + userId + '&token=' + token.token + '&p=' + provider + '&social=' + isSocial;
+            var query = 'id=' + userId + '&token=' + token.token + '&p=' + provider + '&social=' + isSocial;
             mailing.sendVerificationEmail(name, email, query);
         }
+    });
+}
+
+/*
+ * Reset Password Functions
+ * Query format: ?id=XXXXXX&token=YYYYYY
+ */
+
+function startReset(connection, request, response) {
+    var email = request.body.email;
+    if(!email || !emailValidate.validate(email))  return response.status(400).json('Bad Request');
+    LocalUser.findOne({ email: email, connection: connection }, function(error, user) {
+        if(error) response.status(500).json(error);
+        if(!user) response.status(404).json('User does not exist');
+        ResetToken.generateToken(user._id, function(error, token) {
+            if(error) response.status(500).json(error);
+            var query = 'id=' + user._id + '&token=' + token.token;
+            mailing.sendPasswordReset(email, query);
+        });
+        response.status(200).json('Change Requested');
+    });
+}
+
+function endReset(connection, request, response) {
+    var token = request.body.token;
+    var id = request.body.id;
+    var password = request.body.password;
+
+    if(!token || !id || !password) return response.status(400).json('Bad Request');
+
+    ResetToken.useToken(id, token, function(error, token) {
+        if(error) return response.status(401).json(error);
+        LocalUser.changePassword(connection, id, password, function(error, user) {
+            if(error) return response.status(500).json(error);
+            return response.status(200).json('Password Changed');
+        });
     });
 }
 
