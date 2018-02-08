@@ -4,7 +4,6 @@ var Coupon          = require('../models/coupon');
 var CouponClaim     = require('../models/coupon-claim');
 var Business        = require('../models/business');
 var mailing         = require('../middleware/mailing.js');
-var auth0           = require('../middleware/auth.js');
 var subscriptionIds = require('../util/subscription-ids.json');
 var auth            = require('../auth/auth');
 var router          = express.Router();
