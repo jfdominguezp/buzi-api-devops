@@ -59,11 +59,7 @@ CouponClaimSchema.statics.claimCoupon = function(coupon, business, member, maxCl
         newClaim.couponId = coupon;
         newClaim.couponCode = code;
         newClaim.actions = [{ action: 'Claim' }];
-        newClaim.save(function(error, claim) {
-            if(error) return cb(error);
-            if(!claim) return cb(null, false);
-            return cb(null, claim);
-        });
+        newClaim.save(cb);
     });
 }
 
@@ -92,11 +88,14 @@ CouponClaimSchema.statics.getClaimsByMember = function(member, cb) {
         });
 }
 
-//Instance Methods
-CouponClaimSchema.methods.useCoupon = function(cb) {
-    if(_.find(this.actions, { action: 'Use' })) return cb('Coupon already used');
-    this.actions.push({ action: 'Use' });
-    this.save(cb); 
+CouponClaimSchema.statics.useCoupon = function (couponId, businessId, code, cb) {
+    this.findOne({ couponId: couponId, businessId: businessId, couponCode: code }, function(error, claim) {
+        if(error) return cb(error);
+        if(!claim) return cb('Claim does not exist');
+        if(_.find(claim.actions, { action: 'Use' })) return cb('Coupon already used');
+        claim.actions.push({ action: 'Use' });
+        return claim.save(cb);
+    });
 }
 
 module.exports = mongoose.model('CouponClaim', CouponClaimSchema);

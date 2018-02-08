@@ -9,10 +9,9 @@ var subscriptionIds = require('../util/subscription-ids.json');
 var auth            = require('../auth/auth');
 var router          = express.Router();
 
-router.get('/', couponsGetFiltered).post('/', couponPost);
-router.get('/:id', couponGet);
-router.put('/:id/claim', [auth.authenticateMember(), auth.verifyMemberOwnership], claimCoupon);
-router.put('/:id/use', useCoupon);
+router.get('/', couponsGetFiltered).post('/', couponPost).get('/:id', couponGet)
+      .put('/:id/claim', [auth.authenticateMember(), auth.verifyMemberOwnership], claimCoupon)
+      .put('/:id/use', [auth.authenticateBusiness(), auth.verifyCouponOwnership], useCoupon);
 
 //POST Methods
 function couponPost(request, response) {
@@ -21,12 +20,8 @@ function couponPost(request, response) {
     var coupon = new Coupon(body);
 
     coupon.save(function(error, data){
-        if(error) {
-            console.log(error);
-            response.status(500).json(error);
-        }else{
-            response.status(200).json(data);
-        }
+        if(error) return response.status(500).json(error);
+        return response.status(200).json(data);
     });
 }
 
@@ -37,13 +32,9 @@ function couponGet(request, response) {
         .select('-claims -_id -id')
         .populate({ path : 'owner', select: '-_id -userId', populate : { path : 'plan', select: '-_id' } })
         .exec(function(error, coupon) {
-            if(error) {
-                console.log(error);
-                response.status(500).json(error);
-            }else{
-                coupon.claims = [];
-                response.status(200).json(coupon);
-            }
+            if(error) return response.status(500).json(error);
+            if(!coupon) return response.status(404).json('Coupon not found');
+            return response.status(200).json(data);
         });
 }
 
@@ -129,7 +120,16 @@ function claimCoupon(request, response) {
 }
 
 function useCoupon(request, response) {
-    
+    var user = request.user;
+    var businessId = user.shortId;
+    var couponId = request.params.id;
+    var code = request.body.code;
+
+    CouponClaim.useCoupon(couponId, businessId, code, function(error, claim) {
+        if(error) return response.status(500).json(error);
+        if(!claim) return response.status(500).json('Error using coupon');
+        return response.status(200).json(claim);
+    });
 }
 
 module.exports = router;
