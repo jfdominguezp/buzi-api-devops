@@ -176,7 +176,7 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
                 startVerification(newUser._id, 'Local', false, data.name, newUser.email);
                 storeRefreshToken(newUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
                     if(error || !data) return response.status(401).json('Login error');
-                    return response.status(200).json({ data: resData, tokens: tokenSet });
+                    return response.status(200).json({ userId: newUser._id, data: resData, tokens: tokenSet });
                 });
             });
         });
@@ -202,7 +202,7 @@ function login(returnFields, usernameRequired, connection, model, request, respo
             }
             storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
                 if(error || !data) return response.status(401).json('Login error');
-                return response.status(200).json({ data: resData, tokens: tokenSet });
+                return response.status(200).json({ userId: user._id, data: resData, tokens: tokenSet });
             });
         });
     });
