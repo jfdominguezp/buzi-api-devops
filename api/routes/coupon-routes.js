@@ -33,7 +33,7 @@ function couponGet(request, response) {
         .exec(function(error, coupon) {
             if(error) return response.status(500).json(error);
             if(!coupon) return response.status(404).json('Coupon not found');
-            return response.status(200).json(data);
+            return response.status(200).json(coupon);
         });
 }
 
