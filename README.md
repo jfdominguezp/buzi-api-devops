@@ -1,2 +1,2 @@
-# mrcupon_api
-REST API for Mr. Cupón app
+# buzzi_api
+REST API for Buzzi app
