@@ -161,12 +161,15 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
     user.validate(function(error) {
         if(error) return response.status(400).json(error);
         insertUser(body, connection, usernameRequired, function(error, newUser) {
-            if(error) return response.status(400).json(error);
+            if(error) {
+                if(error.code && error.code == 11000) return response.status(400).json('User already exists');
+                return response.status(500).json('Unexpected error');
+            }
             if(!newUser) return response.status(500).json('Unexpected error');
             var newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
             user.identities.push(newIdentity);
             user.save(function(error, data) {
-                if(error) return response.status(400).json(error);
+                if(error) return response.status(500).json('Unexpected error');
                 if(!loginAfterSave) return response.status(200).json(data);
                 var tokenSet = { accessToken: issueAccessToken(newUser, false), refreshToken: randtoken.generate(16) };
                 var resData = { };
@@ -184,6 +187,7 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
 }
 
 function login(returnFields, usernameRequired, connection, model, request, response) {
+    console.log(request.body);
     var credentials = { password: request.body.password };
     if(usernameRequired) {
         credentials.username = request.body.username;
