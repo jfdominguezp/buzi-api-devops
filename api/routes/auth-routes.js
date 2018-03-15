@@ -125,14 +125,14 @@ function startReset(connection, request, response) {
     var email = request.body.email;
     if(!email || !emailValidate.validate(email))  return response.status(400).json('Bad Request');
     LocalUser.findOne({ email: email, connection: connection }, function(error, user) {
-        if(error) response.status(500).json(error);
-        if(!user) response.status(404).json('User does not exist');
+        if(error) return response.status(500).json(error);
+        if(!user) return response.status(404).json('User does not exist');
         ResetToken.generateToken(user._id, function(error, token) {
-            if(error) response.status(500).json(error);
+            if(error) return response.status(500).json(error);
             var query = 'id=' + user._id + '&token=' + token.token;
             mailing.sendPasswordReset(email, query);
         });
-        response.status(200).json('Change Requested');
+        return response.status(200).json('Change Requested');
     });
 }
 
@@ -187,7 +187,6 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
 }
 
 function login(returnFields, usernameRequired, connection, model, request, response) {
-    console.log(request.body);
     var credentials = { password: request.body.password };
     if(usernameRequired) {
         credentials.username = request.body.username;
@@ -196,6 +195,7 @@ function login(returnFields, usernameRequired, connection, model, request, respo
     }
     authenticateCredentials(credentials, usernameRequired, connection, function(error, user) {
         if(error) return response.status(401).json(error);
+        if(!user) return response.status(404).json('User does not exist');
         var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
         var query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
         mongoose.model(model).findOne(query, function(error, data) {
@@ -227,7 +227,7 @@ function authenticateCredentials(credentials, usernameRequired, connection, cb) 
 
     LocalUser.findOne(query, function(error, user) {
         if(error) return cb('Authentication Error');
-        if(!user) return cb('User does not exist');
+        if(!user) return cb(null, null);
         user.passwordMatch(credentials.password, function(error, isMatch) {
             if(error) return cb(error);
             if(!isMatch) return cb('Wrong password');
