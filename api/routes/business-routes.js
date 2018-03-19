@@ -24,7 +24,7 @@ function getBusinessCoupons(request, response) {
     var businessId = request.params.userId;
     if(!businessId) return response.status(400).json('Bad Request');
 
-    Business.findOne({ userId: businessId }, 'shortId', function(error, business){
+    Business.findOne({ 'identities.userId': businessId }, 'shortId', function(error, business){
         if(error) return response.status(500).json('Error');
         if(!business || !business.shortId) return response.status(404).json('The specified business does not exist');
         Coupon.find({ businessId: business.shortId }, function(error, coupons) {

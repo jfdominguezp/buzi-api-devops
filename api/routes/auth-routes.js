@@ -28,7 +28,7 @@ function memberLogin(request, response) {
 }
 
 function businessLogin(request, response) {
-    var returnFields = ['shortId', 'name', 'logo'];
+    var returnFields = ['_id', 'shortId', 'name', 'logo'];
     login(returnFields, true, 'Businesses', 'Business', request, response);
 }
 
