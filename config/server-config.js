@@ -3,7 +3,7 @@ var config = { };
 config.mongoURI = Object.freeze({
     development: 'mongodb://api:8JcCzT71vSuiLNmd@production-shard-00-00-m0khv.mongodb.net:27017,production-shard-00-01-m0khv.mongodb.net:27017,production-shard-00-02-m0khv.mongodb.net:27017/buzi_dev?ssl=true&replicaSet=Production-shard-0&authSource=admin',
     test: 'mongodb://api:8JcCzT71vSuiLNmd@production-shard-00-00-m0khv.mongodb.net:27017,production-shard-00-01-m0khv.mongodb.net:27017,production-shard-00-02-m0khv.mongodb.net:27017/buzi_dev?ssl=true&replicaSet=Production-shard-0&authSource=admin',
-    production: 'mongodb://mrcuponapi:' + process.env.MONGODB_PROD_PASSWORD + '@production-shard-00-00-m0khv.mongodb.net:27017,production-shard-00-01-m0khv.mongodb.net:27017,production-shard-00-02-m0khv.mongodb.net:27017/buzi_prod?ssl=true&replicaSet=Production-shard-0&authSource=admin'
+    production: process.env.MONGODB_CONNECTION_STRING
 });
 
 config.authConfig = Object.freeze({
