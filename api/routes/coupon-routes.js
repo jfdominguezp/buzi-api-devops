@@ -58,8 +58,8 @@ function couponsGetFiltered(request, response) {
 
 function getFeaturedCoupons(request, response) {
     var businessCriteria = [
-        { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
-        { 'subscription.active': true }
+        //Filter business by subscription criteria in the future
+        { }
     ];
     var couponCriteria = [
         { 'initialDate': { $lt: new Date() } },
@@ -70,7 +70,8 @@ function getFeaturedCoupons(request, response) {
 
 function getCouponsByCategory(category, request, response) {
     var businessCriteria = [
-        { 'subscription.active': true }
+        //Filter business by subscription criteria in the future
+        {  }
     ];
     var couponCriteria = [
         { 'category': category },
