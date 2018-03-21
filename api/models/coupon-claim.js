@@ -70,7 +70,7 @@ CouponClaimSchema.statics.getClaimsByMember = function(member, cb) {
         {
             path: 'coupon',
             model: 'Coupon',
-            select: 'shortId businessId name category productImages'
+            select: 'shortId businessId name category productImages initialDate finalDate'
         },
         {
             path: 'business',

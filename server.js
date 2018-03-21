@@ -25,7 +25,7 @@ var app        = express();
 var router = express.Router();
 
 //Configure Raven
-Raven.config('https://b60807bc8af9464887923d18185963a2:ab5e268daa0b47ed8cf91e3ce55cf83e@sentry.io/259670').install();
+Raven.config('https://1bda48c3836d44df8bc374b629d4c296:503d8785a786416abc68627fe20807af@sentry.io/306530').install();
 app.use(Raven.requestHandler());
 
 

@@ -33,7 +33,7 @@ function couponGet(request, response) {
         .exec(function(error, coupon) {
             if(error) return response.status(500).json(error);
             if(!coupon) return response.status(404).json('Coupon not found');
-            return response.status(200).json(data);
+            return response.status(200).json(coupon);
         });
 }
 
@@ -58,8 +58,8 @@ function couponsGetFiltered(request, response) {
 
 function getFeaturedCoupons(request, response) {
     var businessCriteria = [
-        { 'subscription.subscriptionId': { $in: subscriptionIds.mainPage } },
-        { 'subscription.active': true }
+        //Filter business by subscription criteria in the future
+        { }
     ];
     var couponCriteria = [
         { 'initialDate': { $lt: new Date() } },
@@ -70,7 +70,8 @@ function getFeaturedCoupons(request, response) {
 
 function getCouponsByCategory(category, request, response) {
     var businessCriteria = [
-        { 'subscription.active': true }
+        //Filter business by subscription criteria in the future
+        {  }
     ];
     var couponCriteria = [
         { 'category': category },

@@ -28,7 +28,7 @@ function memberLogin(request, response) {
 }
 
 function businessLogin(request, response) {
-    var returnFields = ['shortId', 'name', 'logo'];
+    var returnFields = ['_id', 'shortId', 'name', 'logo'];
     login(returnFields, true, 'Businesses', 'Business', request, response);
 }
 
@@ -125,14 +125,14 @@ function startReset(connection, request, response) {
     var email = request.body.email;
     if(!email || !emailValidate.validate(email))  return response.status(400).json('Bad Request');
     LocalUser.findOne({ email: email, connection: connection }, function(error, user) {
-        if(error) response.status(500).json(error);
-        if(!user) response.status(404).json('User does not exist');
+        if(error) return response.status(500).json(error);
+        if(!user) return response.status(404).json('User does not exist');
         ResetToken.generateToken(user._id, function(error, token) {
-            if(error) response.status(500).json(error);
+            if(error) return response.status(500).json(error);
             var query = 'id=' + user._id + '&token=' + token.token;
             mailing.sendPasswordReset(email, query);
         });
-        response.status(200).json('Change Requested');
+        return response.status(200).json('Change Requested');
     });
 }
 
@@ -161,12 +161,15 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
     user.validate(function(error) {
         if(error) return response.status(400).json(error);
         insertUser(body, connection, usernameRequired, function(error, newUser) {
-            if(error) return response.status(400).json(error);
+            if(error) {
+                if(error.code && error.code == 11000) return response.status(400).json('User already exists');
+                return response.status(500).json('Unexpected error');
+            }
             if(!newUser) return response.status(500).json('Unexpected error');
             var newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
             user.identities.push(newIdentity);
             user.save(function(error, data) {
-                if(error) return response.status(400).json(error);
+                if(error) return response.status(500).json('Unexpected error');
                 if(!loginAfterSave) return response.status(200).json(data);
                 var tokenSet = { accessToken: issueAccessToken(newUser, false), refreshToken: randtoken.generate(16) };
                 var resData = { };
@@ -192,6 +195,7 @@ function login(returnFields, usernameRequired, connection, model, request, respo
     }
     authenticateCredentials(credentials, usernameRequired, connection, function(error, user) {
         if(error) return response.status(401).json(error);
+        if(!user) return response.status(404).json('User does not exist');
         var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
         var query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
         mongoose.model(model).findOne(query, function(error, data) {
@@ -223,7 +227,7 @@ function authenticateCredentials(credentials, usernameRequired, connection, cb) 
 
     LocalUser.findOne(query, function(error, user) {
         if(error) return cb('Authentication Error');
-        if(!user) return cb('User does not exist');
+        if(!user) return cb(null, null);
         user.passwordMatch(credentials.password, function(error, isMatch) {
             if(error) return cb(error);
             if(!isMatch) return cb('Wrong password');
