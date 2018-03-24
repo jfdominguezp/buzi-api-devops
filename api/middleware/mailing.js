@@ -14,24 +14,25 @@ var mailing = {
     sendPasswordReset: sendPasswordReset
 }
 
-function sendCoupon(coupon, code, userEmail) {
+function sendCoupon(coupon, code, user) {
     var message = {
         from: {
-            name: 'Mr. Cupón',
-            email: 'cupones@mistercupon.co',
+            name: 'Buzi',
+            email: 'cupones@buziapp.com',
         },
-        to: userEmail,
-        subject: '¡Felicitaciones! Aquí está tu cupón para ' + coupon.owner.name,
+        to: user.email,
+        subject: coupon.owner.name,
         text: coupon.description,
         html: "<h1>" + coupon.name + "</h1>",
         templateId: '781ba84d-4695-47b1-b514-49fb4f5d2eb8',
         substitutions: {
-            'coupon_name': coupon.name,
-            'coupon_code': code,
-            'coupon_enddate': dateFormat(coupon.finalDate, 'dd/mm/yyyy'),
-            'business_name': coupon.owner.name,
-            'business_address': coupon.owner.basicData.address,
-            'business_phone': coupon.owner.basicData.phoneNumber
+            'memberName': user.name,
+            'couponName': coupon.name,
+            'couponCode': code,
+            'couponFinalDate': dateFormat(coupon.finalDate, 'dd/mm/yyyy'),
+            'businessName': coupon.owner.name,
+            'businessAddress': coupon.owner.basicData.address,
+            'businessPhone': coupon.owner.basicData.phoneNumber
         }
     };
     sendgrid.send(message)
@@ -46,8 +47,8 @@ function sendCoupon(coupon, code, userEmail) {
 function sendVerificationEmail(name, email, query) {
     var message = {
         from: {
-            name: 'Mr. Cupón',
-            email: 'noreply@mrcupon.co'
+            name: 'Buzi',
+            email: 'noreply@buziapp.com'
         },
         to: email,
         templateId: 'a98d411b-af61-425c-9ff3-41cdbe000e24',
@@ -66,8 +67,8 @@ function sendVerificationEmail(name, email, query) {
 function sendPasswordReset(email, query) {
     var message = {
         from: {
-            name: 'Mr. Cupón',
-            email: 'noreply@mrcupon.co'
+            name: 'Buzi',
+            email: 'noreply@buziapp.com'
         },
         to: email,
         templateId: '2e84ede3-2c5d-4128-8b5d-31ad0cca1547',

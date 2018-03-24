@@ -29,7 +29,7 @@ var jwtMembersLocal = new JwtStrategy(jwtParams, function(jwt_payload, done) {
                 memberId: member._id,
                 name: member.name,
                 familyName: member.familyName,
-                email: member.email,
+                email: user.email,
                 claimTimes: member.claimTimes,
                 userId: user._id
             };
