@@ -130,7 +130,7 @@ function startReset(connection, request, response) {
         ResetToken.generateToken(user._id, function(error, token) {
             if(error) return response.status(500).json(error);
             var query = 'id=' + user._id + '&token=' + token.token;
-            mailing.sendPasswordReset(email, query);
+            mailing.sendPasswordReset(email, query, connection);
         });
         return response.status(200).json('Change Requested');
     });
