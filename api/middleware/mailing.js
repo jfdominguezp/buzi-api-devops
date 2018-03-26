@@ -64,7 +64,11 @@ function sendVerificationEmail(name, email, query) {
         });
 }
 
-function sendPasswordReset(email, query) {
+function sendPasswordReset(email, query, connection) {
+    var url = {
+        'People': 'https://buziapp.com/change-password?',
+        'Businesses': 'https://negocios.buziapp.com/change-password?',
+    };
     var message = {
         from: {
             name: 'Buzi',
@@ -73,10 +77,9 @@ function sendPasswordReset(email, query) {
         to: email,
         templateId: '2e84ede3-2c5d-4128-8b5d-31ad0cca1547',
         substitutions: {
-            'query': query
+            'query': url[connection] + query
         }
     };
-
     sendgrid.send(message)
         .catch(function(error) {
             console.log(error);
