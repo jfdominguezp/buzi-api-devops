@@ -3,6 +3,10 @@
     "main": "server.js",
     "repository": "https://github.com/jfdominguezp/BuziAPI.git",
     "license": "UNLICENSED",
+    "version": "1.0.0",
+    "engines": {
+        "node": ">=8.0.0"
+    },
     "dependencies": {
         "@sendgrid/mail": "^6.3.1",
         "bcrypt": "^3.0.0",
