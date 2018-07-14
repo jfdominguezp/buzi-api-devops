@@ -26,19 +26,19 @@ var LocalUserSchema = new Schema({
 
 LocalUserSchema.index({ email: 1, connection: 1 }, { unique: true });
 
-LocalUserSchema.methods.passwordMatch = function(password, cb) {
-    bcrypt.compare(password, this.passwordHash, function(error, isMatch) {
+LocalUserSchema.methods.passwordMatch = (password, cb) => {
+    bcrypt.compare(password, this.passwordHash, (error, isMatch) => {
         if(error) return cb(error);
         return cb(null, isMatch);
     });
 }
 
-LocalUserSchema.statics.changePassword = function(connection, userId, password, cb) {
-    this.findOne({ _id: userId, connection: connection }, function(error, user) {
+LocalUserSchema.statics.changePassword = (_id, connection, password, cb) => {
+    this.findOne({ _id, connection }, (error, user) => {
         if(error) return cb(error);
         if(!user) return cb('User does not exist');
 
-        bcrypt.hash(password, 10, function(error, hash) {
+        bcrypt.hash(password, 10, (error, hash) => {
             if(error || !hash) return cb('Error');
             user.passwordHash = hash;
             user.save(cb);
@@ -46,10 +46,11 @@ LocalUserSchema.statics.changePassword = function(connection, userId, password, 
     });
 }
 
-LocalUserSchema.statics.markEmailVerified = function(userId, cb) {
-    this.findOne({ _id: userId }, function(error, user) {
+LocalUserSchema.statics.markEmailVerified = (_id, cb) => {
+    this.findOne({ _id }, function(error, user) {
         if(error) return cb(error);
         if(!user) return cb('User does not exist');
+        if(user.email_verified) return cb('Email already verified');
         user.email_verified = true;
         user.save(cb);
     });

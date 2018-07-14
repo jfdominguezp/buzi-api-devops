@@ -15,21 +15,22 @@ var VerifyTokenSchema = new Schema({
 
 VerifyTokenSchema.index({ createdAt: 1 }, { expires: '30d' });
 
-VerifyTokenSchema.statics.generateToken = function(userId, provider, isSocial, cb) {
+VerifyTokenSchema.statics.generateToken = (userId, provider, isSocial, cb) => {
     var VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
-    var newToken = new VerifyToken();
     if(!userId || !provider) return cb('Bad Request');
 
-    newToken.token = randtoken.generate(16);
-    newToken.userId = userId;
-    newToken.provider = provider;
-    newToken.isSocial = isSocial;
+    var newToken = new VerifyToken({
+        userId,
+        provider,
+        isSocial,
+        token: randtoken.generate(16)
+    });
 
     return newToken.save(cb);
 }
 
-VerifyTokenSchema.statics.useToken = function(token, userId, provider, isSocial, cb) {
-    this.findOne({ token: token, userId: userId, provider: provider, isSocial: isSocial }, function(error, token) {
+VerifyTokenSchema.statics.useToken = (token, userId, provider, isSocial, cb) => {
+    this.findOne({ token, userId, provider, isSocial }, (error, token) => {
         if(error) return cb(error);
         if(!token) return cb('Invalid id or token');
         if(token.used) return cb('Token used');

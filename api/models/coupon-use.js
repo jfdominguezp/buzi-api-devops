@@ -1,6 +1,4 @@
-var _            = require('lodash');
 var mongoose     = require('mongoose');
-var randomString = require('randomString');
 var shortId      = require('shortid');
 var Schema       = mongoose.Schema;
 

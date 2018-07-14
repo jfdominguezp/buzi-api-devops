@@ -1,6 +1,4 @@
-var _            = require('lodash');
 var mongoose     = require('mongoose');
-var randomString = require('randomString');
 var shortId      = require('shortid');
 var Schema       = mongoose.Schema;
 
@@ -32,8 +30,8 @@ CouponSchema.virtual('owner', {
     justOne: true
 });
 
-CouponSchema.virtual('availableCoupons').get(function() {
-    return this.coupons - this.claimedCoupons;
+CouponSchema.virtual('availableCoupons').get(() => {
+    this.coupons - this.claimedCoupons;
 });
 
 module.exports = mongoose.model('Coupon', CouponSchema);

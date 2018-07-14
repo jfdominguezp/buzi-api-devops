@@ -15,20 +15,20 @@ var RefreshTokenSchema = new Schema({
 
 RefreshTokenSchema.index({ updatedAt: 1 }, { expires: '10d' });
 
-RefreshTokenSchema.statics.getToken = function(token, userId, cb) {
-    this.findOne({ token: token, userId: userId }, function(error, data) {
-        if(error) return cb(error, false);
-        if(!data || !data.token || !data.active) return cb(null, false);
+RefreshTokenSchema.statics.getToken = (token, userId, cb) => {
+    this.findOne({ token, userId }, (error, data) => {
+        if(error) return cb(error, null);
+        if(!data || !data.token || !data.active) return cb(null, null);
         return cb(null, data);
     });
 };
 
-RefreshTokenSchema.statics.revokeToken = function(token, userId, cb) {
+RefreshTokenSchema.statics.revokeToken = (token, userId, cb) => {
     this.findOneAndUpdate(
-        { token: token, userId: userId },
+        { token, userId },
         { $set: { active: false } },
         { new: true },
-        function(error, data) {
+        (error, data) => {
             if(error) return cb(error);
             if(!data || !data.token) return cb('Token not found');
             return cb(null, data);
@@ -36,14 +36,14 @@ RefreshTokenSchema.statics.revokeToken = function(token, userId, cb) {
     );
 };
 
-RefreshTokenSchema.statics.updateLastAccess = function(token, userId) {
+RefreshTokenSchema.statics.updateLastAccess = (token, userId) => {
     this.findOneAndUpdate(
-        { token: token, userId: userId },
+        { token, userId },
         { $set: { lastAccess: Date.now() } },
-        function(error, token) {
+        (error, token) => {
             if(error) console.log('Error updating refresh token ' + token.token + ' with userId ' +  token.userId);
         }
     );
-}
+};
 
 module.exports = mongoose.model('RefreshToken', RefreshTokenSchema);
