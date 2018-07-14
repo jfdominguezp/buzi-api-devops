@@ -1,10 +1,10 @@
-var mongoose = require('mongoose');
-var Schema   = mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema   = mongoose.Schema;
 
 /*
 *   Accounts will be linked in this Schema
 */
-var AdministratorSchema = new Schema({
+const AdministratorSchema = new Schema({
     name: { type: String, trim: true, required: true },
     family_name: { type: String, trim: true, required: true },
     identities: [{

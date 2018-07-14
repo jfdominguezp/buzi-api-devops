@@ -1,9 +1,9 @@
-var mongoose  = require('mongoose');
-var shortId   = require('shortid');
-var validator = require('email-validator');
-var Schema    = mongoose.Schema;
+const mongoose  = require('mongoose');
+const shortId   = require('shortid');
+const validator = require('email-validator');
+const Schema    = mongoose.Schema;
 
-var BranchSchema = new Schema({
+const BranchSchema = new Schema({
     name: { type: String, required: true },
     address: { type: String, required: true },
     phoneNumber: { type: String, required: true },
@@ -11,9 +11,7 @@ var BranchSchema = new Schema({
         type: String,
         trim: true,
         validate: {
-            validator: function(v) {
-                return validator.validate(v);
-            },
+            validator: v => validator.validate(v),
             message: '{VALUE} is not a valid email!'
         },
     },
@@ -22,8 +20,8 @@ var BranchSchema = new Schema({
     timestamps: true
 });
 
-var BusinessSchema = new Schema({
-    shortId: {type: String, unique: true, default: shortId.generate},
+const BusinessSchema = new Schema({
+    shortId: { type: String, unique: true, default: shortId.generate },
     name: { type: String, required: true },
     logo: String,
     identities: [{
@@ -55,9 +53,7 @@ var BusinessSchema = new Schema({
             trim: true,
             required: true,
             validate: {
-                validator: function(v) {
-                    return validator.validate(v);
-                },
+                validator: v => validator.validate(v),
                 message: '{VALUE} is not a valid email!'
             },
         },

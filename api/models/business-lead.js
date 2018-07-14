@@ -1,11 +1,9 @@
-var _            = require('lodash');
-var mongoose     = require('mongoose');
-var randomString = require('randomString');
-var shortId      = require('shortid');
-var validator    = require('email-validator');
-var Schema       = mongoose.Schema;
+const mongoose     = require('mongoose');
+const shortId      = require('shortid');
+const validator    = require('email-validator');
+const Schema       = mongoose.Schema;
 
-var BusinessLeadSchema = new Schema({
+const BusinessLeadSchema = new Schema({
     shortId: { type: String, unique: true, default: shortId.generate },
     name: { type: String,    required: true },
     business: { type: String, required: true },
@@ -14,9 +12,7 @@ var BusinessLeadSchema = new Schema({
         type: String,
         required: true,
         validate: {
-            validator: function(v) {
-                return validator.validate(v);
-            },
+            validator: v => validator.validate(v),
             message: '{VALUE} is not a valid email!'
         },
     },

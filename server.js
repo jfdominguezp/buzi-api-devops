@@ -1,39 +1,39 @@
 //Packages
-var express            = require('express');
-var bodyParser         = require('body-parser');
-var mongoose           = require('mongoose');
-var cors               = require('cors');
-var Raven              = require('raven');
-var morgan             = require('morgan');
+const express            = require('express');
+const bodyParser         = require('body-parser');
+const mongoose           = require('mongoose');
+const cors               = require('cors');
+const Raven              = require('raven');
+const morgan             = require('morgan');
 
 //Routes
-var businessRoutes     = require('./api/routes/business-routes');
-var leadRoutes         = require('./api/routes/lead-routes');
-var couponRoutes       = require('./api/routes/coupon-routes');
-var subscriptionRoutes = require('./api/routes/subscription-routes');
-var testRoutes         = require('./api/routes/test-routes');
-var mailRoutes         = require('./api/routes/mail-routes');
-var authRoutes         = require('./api/routes/auth-routes');
-var memberRoutes       = require('./api/routes/member-routes');
+const businessRoutes     = require('./api/routes/business-routes');
+const leadRoutes         = require('./api/routes/lead-routes');
+const couponRoutes       = require('./api/routes/coupon-routes');
+const subscriptionRoutes = require('./api/routes/subscription-routes');
+const mailRoutes         = require('./api/routes/mail-routes');
+const authRoutes         = require('./api/routes/auth-routes');
+const memberRoutes       = require('./api/routes/member-routes');
 
 //Config
-var config             = require('./config/server-config');
+const config             = require('./config/server-config');
 
 //App
-var port     = process.env.PORT || 3000;
-var app        = express();
-var router = express.Router();
+const port     = process.env.PORT || 3000;
+const app        = express();
+const router = express.Router();
 
 //Configure Raven
 Raven.config('https://1bda48c3836d44df8bc374b629d4c296:503d8785a786416abc68627fe20807af@sentry.io/306530').install();
 app.use(Raven.requestHandler());
 
 
-mongoose.connect(config.mongoURI[app.settings.env], function(err, res) {
+mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
     if(err) {
         console.log('Error connecting to the database. ' + err);
-    } else if(app.settings.env !== 'test')
+    } else if(app.settings.env !== 'test') {
         console.log('Connected to Database: ' + config.mongoURI[app.settings.env]);
+    }
 });
 
 router.use(bodyParser.urlencoded({ extended: true }));
