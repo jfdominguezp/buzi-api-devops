@@ -5,3 +5,4 @@ sendgrid.env
 auth0_client.env
 auth0_secret.env
 auth0.env
+.env
