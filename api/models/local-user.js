@@ -1,9 +1,9 @@
-var mongoose  = require('mongoose');
-var bcrypt    = require('bcrypt');
-var validator = require('email-validator');
-var Schema    = mongoose.Schema;
+const mongoose  = require('mongoose');
+const bcrypt    = require('bcrypt');
+const validator = require('email-validator');
+const Schema    = mongoose.Schema;
 
-var LocalUserSchema = new Schema({
+const LocalUserSchema = new Schema({
     connection: { type: String, required: true, enum: ['People', 'Businesses', 'Administrators'] },
     email: {
         type: String,

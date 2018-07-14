@@ -1,8 +1,8 @@
-var mongoose  = require('mongoose');
-var randtoken = require('rand-token');
-var Schema    = mongoose.Schema;
+const mongoose  = require('mongoose');
+const randtoken = require('rand-token');
+const Schema    = mongoose.Schema;
 
-var VerifyTokenSchema = new Schema({
+const VerifyTokenSchema = new Schema({
     token: { type: String, required: true },
     userId: { type: String, required: true },
     provider: { type: String, required: true },
@@ -16,10 +16,10 @@ var VerifyTokenSchema = new Schema({
 VerifyTokenSchema.index({ createdAt: 1 }, { expires: '30d' });
 
 VerifyTokenSchema.statics.generateToken = (userId, provider, isSocial, cb) => {
-    var VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
+    const VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
     if(!userId || !provider) return cb('Bad Request');
 
-    var newToken = new VerifyToken({
+    const newToken = new VerifyToken({
         userId,
         provider,
         isSocial,

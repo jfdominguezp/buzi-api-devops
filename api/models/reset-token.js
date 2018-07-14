@@ -1,8 +1,8 @@
-var mongoose  = require('mongoose');
-var randtoken = require('rand-token');
-var Schema    = mongoose.Schema;
+const mongoose  = require('mongoose');
+const randtoken = require('rand-token');
+const Schema    = mongoose.Schema;
 
-var ResetTokenSchema = new Schema({
+const ResetTokenSchema = new Schema({
     token: { type: String, required: true },
     userId: { type: String, required: true },
     used: { type: Boolean, default: false }
@@ -20,8 +20,8 @@ ResetTokenSchema.statics.generateToken = (userId, cb) => {
         if(error) return cb(error);
         if(token) return cb(null, token);
 
-        var ResetToken = mongoose.model('ResetToken', ResetTokenSchema);
-        var newToken = new ResetToken({
+        const ResetToken = mongoose.model('ResetToken', ResetTokenSchema);
+        const newToken = new ResetToken({
             userId,
             token: randtoken.generate(24)
         });

@@ -1,7 +1,7 @@
-var mongoose = require('mongoose');
-var Schema   = mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema   = mongoose.Schema;
 
-var RefreshTokenSchema = new Schema({
+const RefreshTokenSchema = new Schema({
     token: { type: String, required: true },
     userId: { type: String, required: true },
     provider: { type: String, required: true },

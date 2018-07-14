@@ -1,8 +1,8 @@
-var mongoose     = require('mongoose');
-var shortId      = require('shortid');
-var Schema       = mongoose.Schema;
+const mongoose     = require('mongoose');
+const shortId      = require('shortid');
+const Schema       = mongoose.Schema;
 
-var CouponUseSchema = new Schema({
+const CouponUseSchema = new Schema({
     shortId: { type: String, unique: true, default: shortId.generate },
     businessId: { type: String,  required: true },
     couponId: { type: String, required: true },
