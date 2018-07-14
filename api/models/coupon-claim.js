@@ -40,33 +40,30 @@ CouponClaimSchema.virtual('business', {
 
 CouponClaimSchema.statics.claimCoupon = (couponId, businessId, memberId, maxClaims, claimTimes, cb) => {
     const CouponClaim = mongoose.model('CouponClaim', CouponClaimSchema);
-    
-    this.find({ couponId: coupon }, function(error, allClaims) {
-        if(error) return cb(error);
-        if(allClaims.length >= maxClaims) return cb('Max claims reached');
-        const memberClaims = allClaims.filter(claim => claim.memberId == member);
-        if(memberClaims.length >= claimTimes) return cb("Member can not claim this coupon");
-
-        let couponCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
-        while(_.find(allClaims, { couponCode })){
-            couponCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
-        }
-        const newClaim = new CouponClaim({ 
-            businessId,
-            memberId,
-            couponId,
-            couponCode,
-            actions: [{ action: 'Claim' }]  
+    this.where({ couponId }).count((error, count) => {
+        if (error) return cb(error);
+        if (count >= maxClaims) return cb('Max claims reached');
+        this.find({ couponId, memberId }, (error, claims) => {
+            if (error) return cb(error);
+            if (claims.length >= claimTimes) return cb("Member can not claim this coupon");
+            let couponCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
+            while(_.find(claims, { couponCode })){
+                couponCode = randomString.generate({ length: 5, capitalization: 'uppercase' });
+            }
+            const newClaim = new CouponClaim({ 
+                businessId,
+                memberId,
+                couponId,
+                couponCode,
+                actions: [{ action: 'Claim' }]  
+            });
+            newClaim.save(cb);
         });
-
-        newClaim.save(cb);
     });
-}
+};
 
 //TODO Refactor from here
-CouponClaimSchema.statics.getClaimsByMember = function(member, cb) {
-    const CouponClaim = mongoose.model('CouponClaim', CouponClaimSchema);
-    const newClaim = new CouponClaim();
+CouponClaimSchema.statics.getClaimsByMember = (memberId, cb) => {
     const populate = [
         {
             path: 'coupon',
@@ -80,17 +77,17 @@ CouponClaimSchema.statics.getClaimsByMember = function(member, cb) {
         }
     ];
 
-    this.find({ memberId: member })
+    this.find({ memberId })
         .sort({ createdAt: -1 })
         .populate(populate)
-        .exec(function(error, claims) {
+        .exec((error, claims) => {
             if(error) return cb(error);
             return cb(null, claims);
         });
-}
+};
 
-CouponClaimSchema.statics.useCoupon = function (couponId, businessId, code, cb) {
-    this.findOne({ couponId: couponId, businessId: businessId, couponCode: code }, function(error, claim) {
+CouponClaimSchema.statics.useCoupon = (couponId, businessId, couponCode, cb) => {
+    this.findOne({ couponId, businessId, couponCode }, (error, claim) => {
         if(error) return cb(error);
         if(!claim) return cb('Claim does not exist');
         if(_.find(claim.actions, { action: 'Use' })) return cb('Coupon already used');
