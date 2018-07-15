@@ -1,18 +1,18 @@
-var express       = require('express');
-var mongoose      = require('mongoose');
-var jwt           = require('jsonwebtoken');
-var randtoken     = require('rand-token');
-var bcrypt        = require('bcrypt');
-var LocalUser     = require('../models/local-user');
-var RefreshToken  = require('../models/refresh-token');
-var VerifyToken   = require('../models/verify-token');
-var ResetToken    = require('../models/reset-token');
-var Member        = require('../models/member');
-var Business      = require('../models/business');
-var config        = require('../../config/server-config').authConfig;
-var mailing       = require('../middleware/mailing');
-var emailValidate = require('email-validator');
-var router        = express.Router();
+const express       = require('express');
+const mongoose      = require('mongoose');
+const jwt           = require('jsonwebtoken');
+const randtoken     = require('rand-token');
+const bcrypt        = require('bcrypt');
+const LocalUser     = require('../models/local-user');
+const RefreshToken  = require('../models/refresh-token');
+const VerifyToken   = require('../models/verify-token');
+const ResetToken    = require('../models/reset-token');
+const Member        = require('../models/member');
+const Business      = require('../models/business');
+const config        = require('../../config/server-config').authConfig;
+const mailing       = require('../middleware/mailing');
+const emailValidate = require('email-validator');
+const router        = express.Router();
 
 router.post('/login', memberLogin).post('/token', token).post('/signup', memberSignup)
       .post('/reset', memberStartReset).post('/business/reset', businessStartReset)
@@ -23,12 +23,12 @@ router.post('/login', memberLogin).post('/token', token).post('/signup', memberS
 //Login Functions
 
 function memberLogin(request, response) {
-    var returnFields = ['_id', 'name', 'familyName'];
+    const returnFields = ['_id', 'name', 'familyName'];
     login(returnFields, false, 'People', 'Member', request, response);
 }
 
 function businessLogin(request, response) {
-    var returnFields = ['_id', 'shortId', 'name', 'logo'];
+    const returnFields = ['_id', 'shortId', 'name', 'logo'];
     login(returnFields, true, 'Businesses', 'Business', request, response);
 }
 
@@ -53,30 +53,29 @@ function memberEndReset(request, response) {
 //Signup Functions
 
 function memberSignup(request, response) {
-    var returnFields = ['_id', 'name', 'familyName'];
+    const returnFields = ['_id', 'name', 'familyName'];
     signup('Member', Member, 'People', returnFields, false, true, request, response);
 }
 
 function businessSignup(request, response) {
-    var returnFields = ['shortId', 'name', 'logo'];
+    const returnFields = ['shortId', 'name', 'logo'];
     signup('Business', Business, 'Businesses', returnFields, true, true, request, response);
 }
 
 //Refresh Token Functions
 
 function token(request, response) {
-    var refresh = request.body.refreshToken;
-    var userId  = request.body.userId;
+    const { refreshToken, userId } = request.body;
 
-    if(!refresh) return response.status(400).json('Bad Request');
-    RefreshToken.getToken(refresh, userId, function(error, token) {
+    if(!refreshToken) return response.status(400).json('Bad Request');
+    RefreshToken.getToken(refreshToken, userId, (error, token) => {
         if(error) return response.status(401).json(error);
         if(!token) return response.status(401).json('Bad refresh token');
         if(!token.isSocial) {
-            LocalUser.findOne({ _id: userId }, function(error, user) {
+            LocalUser.findOne({ _id: userId }, (error, user) => {
                 if(error) return response.status(401).json(error);
                 if(!user) return response.status(404).json('User does not exist');
-                RefreshToken.updateLastAccess(refresh, userId);
+                RefreshToken.updateLastAccess(refreshToken, userId);
                 return response.status(200).json({ accessToken: issueAccessToken(user, false) });
             });
         }
@@ -85,32 +84,30 @@ function token(request, response) {
 
 /*
  * Verify Account Functions
- * Query format: ?id=AAAAAAAAA&token=XXXXXXX&p=BBBBB&social=XXXXXX
+ * Query format: ?id=AAAAAAAAA&token=XXXXXXX&provider=BBBBB&social=XXXXXX
  */
 
 function verifyAccount(request, response) {
-    var userId = request.query.id;
-    var token = request.query.token;
-    var provider = request.query.p;
-    var isSocial = request.query.social;
+
+    const { userId, token, provider, isSocial } = request.query;
 
     if(!userId || !token || !provider || isSocial == null || isSocial == undefined){
         return response.status(400).json('Bad Request');
     }
 
-    VerifyToken.useToken(token, userId, provider, isSocial, function(error, token) {
+    VerifyToken.useToken(token, userId, provider, isSocial, (error) => {
         if(error) return response.status(400).json(error);
-        LocalUser.markEmailVerified(userId, function(error, user) {
+        LocalUser.markEmailVerified(userId, (error, { _id, email_verified }) => {
             if(error) return response.status(500).json(error);
-            return response.status(200).json({ _id: user._id, email_verified: user.email_verified });
+            return response.status(200).json({ _id, email_verified });
         });
     });
 }
 
 function startVerification(userId, provider, isSocial, name, email) {
-    VerifyToken.generateToken(userId, provider, isSocial, function(error, token) {
+    VerifyToken.generateToken(userId, provider, isSocial, (error, token) => {
         if(!error && token) {
-            var query = 'id=' + userId + '&token=' + token.token + '&p=' + provider + '&social=' + isSocial;
+            const query = `id=${userId}&token=${token.token}&p=${provider}&social=${isSocial}`;
             mailing.sendVerificationEmail(name, email, query);
         }
     });
@@ -122,14 +119,14 @@ function startVerification(userId, provider, isSocial, name, email) {
  */
 
 function startReset(connection, request, response) {
-    var email = request.body.email;
+    const email = request.body.email;
     if(!email || !emailValidate.validate(email))  return response.status(400).json('Bad Request');
-    LocalUser.findOne({ email: email, connection: connection }, function(error, user) {
+    LocalUser.findOne({ email, connection }, (error, user) => {
         if(error) return response.status(500).json(error);
         if(!user) return response.status(404).json('User does not exist');
-        ResetToken.generateToken(user._id, function(error, token) {
+        ResetToken.generateToken(user._id, (error, token) => {
             if(error) return response.status(500).json(error);
-            var query = 'id=' + user._id + '&token=' + token.token;
+            const query = `id=${user._id}&token=${token.token}`;
             mailing.sendPasswordReset(email, query, connection);
         });
         return response.status(200).json('Change Requested');
@@ -137,15 +134,13 @@ function startReset(connection, request, response) {
 }
 
 function endReset(connection, request, response) {
-    var token = request.body.token;
-    var id = request.body.id;
-    var password = request.body.password;
+    const { token, id, password } = request.body;
 
     if(!token || !id || !password) return response.status(400).json('Bad Request');
 
-    ResetToken.useToken(id, token, function(error, token) {
+    ResetToken.useToken(id, token, (error) => {
         if(error) return response.status(401).json(error);
-        LocalUser.changePassword(connection, id, password, function(error, user) {
+        LocalUser.changePassword(connection, id, password, (error) => {
             if(error) return response.status(500).json(error);
             return response.status(200).json('Password Changed');
         });
@@ -154,30 +149,29 @@ function endReset(connection, request, response) {
 
 //Generic Functions
 
+//TODO Check returnFields assignment
 function signup(model, modelSchema, connection, returnFields, usernameRequired, loginAfterSave, request, response) {
-    var body = request.body;
-    var user = new modelSchema(request.body);
+    const body = request.body;
+    const user = new modelSchema(body);
 
-    user.validate(function(error) {
+    user.validate((error) => {
         if(error) return response.status(400).json(error);
-        insertUser(body, connection, usernameRequired, function(error, newUser) {
+        insertUser(body, connection, usernameRequired, (error, newUser) => {
             if(error) {
                 if(error.code && error.code == 11000) return response.status(400).json('User already exists');
                 return response.status(500).json('Unexpected error');
             }
             if(!newUser) return response.status(500).json('Unexpected error');
-            var newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
+            const newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
             user.identities.push(newIdentity);
-            user.save(function(error, data) {
+            user.save((error, data) => {
                 if(error) return response.status(500).json('Unexpected error');
                 if(!loginAfterSave) return response.status(200).json(data);
-                var tokenSet = { accessToken: issueAccessToken(newUser, false), refreshToken: randtoken.generate(16) };
-                var resData = { };
-                for(i = 0; i < returnFields.length; i++) {
-                    resData[returnFields[i]] = data[returnFields[i]];
-                }
+                const tokenSet = { accessToken: issueAccessToken(newUser, false), refreshToken: randtoken.generate(16) };
+                const resData = { };
+                returnFields.forEach(field => { resData[field] = data[field] });
                 startVerification(newUser._id, 'Local', false, data.name, newUser.email);
-                storeRefreshToken(newUser._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+                storeRefreshToken(newUser._id, tokenSet.refreshToken, 'Local', false, (error, data) => {
                     if(error || !data) return response.status(401).json('Login error');
                     return response.status(200).json({ userId: newUser._id, data: resData, tokens: tokenSet });
                 });
@@ -186,25 +180,24 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
     });
 }
 
+//TODO Check returnFields assignment
 function login(returnFields, usernameRequired, connection, model, request, response) {
-    var credentials = { password: request.body.password };
+    const credentials = { password: request.body.password };
     if(usernameRequired) {
         credentials.username = request.body.username;
     } else {
         credentials.email = request.body.email;
     }
-    authenticateCredentials(credentials, usernameRequired, connection, function(error, user) {
+    authenticateCredentials(credentials, usernameRequired, connection, (error, user) => {
         if(error) return response.status(401).json(error);
         if(!user) return response.status(404).json('User does not exist');
-        var tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
-        var query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
-        mongoose.model(model).findOne(query, function(error, data) {
+        const tokenSet = { accessToken: issueAccessToken(user, false), refreshToken: randtoken.generate(16) };
+        const query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
+        mongoose.model(model).findOne(query, (error, data) => {
             if(error || !data) return response.status(401).json('Auth error');
-            var resData = { };
-            for(i = 0; i < returnFields.length; i++) {
-                resData[returnFields[i]] = data[returnFields[i]];
-            }
-            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, function(error, data) {
+            const resData = { };
+            returnFields.forEach(field => { resData[field] = data[field] });
+            storeRefreshToken(user._id, tokenSet.refreshToken, 'Local', false, (error, data) => {
                 if(error || !data) return response.status(401).json('Login error');
                 return response.status(200).json({ userId: user._id, data: resData, tokens: tokenSet });
             });
@@ -212,23 +205,17 @@ function login(returnFields, usernameRequired, connection, model, request, respo
     });
 }
 
-function authenticateCredentials(credentials, usernameRequired, connection, cb) {
-    if(!credentials.password) return cb('Password required');
-    if(usernameRequired && !credentials.username) return cb('Username required');
-    if(!usernameRequired && !credentials.email) return cb('Email required');
+function authenticateCredentials({ email, password, username }, usernameRequired, connection, cb) {
+    if(password) return cb('Password required');
+    if(usernameRequired && !username) return cb('Username required');
+    if(!usernameRequired && !email) return cb('Email required');
 
-    var query = { connection: connection };
+    const query = { email, username, connection };
 
-    if(usernameRequired) {
-        query.username = credentials.username
-    } else {
-        query.email = credentials.email
-    }
-
-    LocalUser.findOne(query, function(error, user) {
+    LocalUser.findOne(query, (error, user) => {
         if(error) return cb('Authentication Error');
         if(!user) return cb(null, null);
-        user.passwordMatch(credentials.password, function(error, isMatch) {
+        user.passwordMatch(password, (error, isMatch) => {
             if(error) return cb(error);
             if(!isMatch) return cb('Wrong password');
             return cb(null, user);
@@ -237,40 +224,41 @@ function authenticateCredentials(credentials, usernameRequired, connection, cb) 
 
 }
 
-function insertUser(user, connection, usernameRequired, cb){
-    if(!user || !connection || !user.email || !user.password || (usernameRequired && !user.username)) {
+function insertUser({ email, password, username }, connection, usernameRequired, cb){
+    if( !connection || !email || !password || (usernameRequired && !username) || (!usernameRequired && username)) {
         return cb('Invalid credentials', null);
     }
-    bcrypt.hash(user.password, 10, function(error, hash) {
-        if(error || !hash) return cb(error);
-        var newUser = new LocalUser({ email: user.email, passwordHash: hash, connection: connection });
-        if(usernameRequired) newUser.username = user.username;
+
+    bcrypt.hash(password, 10, (error, passwordHash) => {
+        if(error || !passwordHash) return cb(error);
+        const newUser = new LocalUser({ email, passwordHash, connection });
         return newUser.save(cb);
     });
 }
 
-function issueAccessToken(user, isSocial) {
-    var payload = {
-        _id: user._id,
-        email: user.email,
-        connection: user.connection,
-        isSocial: isSocial
+function issueAccessToken({ _id, email, connection, username }, isSocial) {
+    const payload = {
+        _id,
+        email,
+        username,
+        connection,
+        isSocial
     };
-    if(user.username) payload.username = user.username;
-    var options = {
+    const options = {
         expiresIn: 900,
         issuer: config.issuer
     };
-    var token = jwt.sign(payload, config.jwtSecret, options);
+    const token = jwt.sign(payload, config.jwtSecret, options);
     return token;
 }
 
 function storeRefreshToken(userId, token, provider, isSocial, cb) {
-    var refresh = new RefreshToken();
-    refresh.token = token;
-    refresh.userId = userId;
-    refresh.provider = provider;
-    refresh.isSocial = isSocial;
+    const refresh = new RefreshToken({
+        token,
+        userId,
+        provider,
+        isSocial
+    });
     refresh.save(cb);
 }
 
