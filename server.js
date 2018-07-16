@@ -8,10 +8,7 @@ const morgan             = require('morgan');
 
 //Routes
 const businessRoutes     = require('./api/routes/business-routes');
-const leadRoutes         = require('./api/routes/lead-routes');
 const couponRoutes       = require('./api/routes/coupon-routes');
-const subscriptionRoutes = require('./api/routes/subscription-routes');
-const mailRoutes         = require('./api/routes/mail-routes');
 const authRoutes         = require('./api/routes/auth-routes');
 const memberRoutes       = require('./api/routes/member-routes');
 
@@ -41,9 +38,6 @@ router.use(bodyParser.json());
 
 router.use('/business', businessRoutes);
 router.use('/coupon', couponRoutes);
-router.use('/subscription', subscriptionRoutes);
-router.use('/leads', leadRoutes);
-router.use('/mail', mailRoutes);
 router.use('/auth', authRoutes);
 router.use('/member', memberRoutes);
 
