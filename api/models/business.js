@@ -59,18 +59,4 @@ const BusinessSchema = new Schema({
     toJSON: { virtuals: true }
 });
 
-BusinessSchema.virtual('plan', {
-    ref: 'Subscription',
-    localField: 'subscription.subscriptionId',
-    foreignField: 'shortId',
-    justOne: true
-});
-
-BusinessSchema.virtual('couponsList', {
-    ref: 'Coupon',
-    localField: 'coupons.couponId',
-    foreignField: 'shortId',
-    justOne: true
-});
-
 module.exports = mongoose.model('Business', BusinessSchema);

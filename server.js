@@ -1,14 +1,16 @@
+require('dotenv').config();
+
 //Packages
-const express            = require('express');
-const bodyParser         = require('body-parser');
-const mongoose           = require('mongoose');
-const cors               = require('cors');
-const Raven              = require('raven');
-const morgan             = require('morgan');
+const express    = require('express');
+const bodyParser = require('body-parser');
+const mongoose   = require('mongoose');
+const cors       = require('cors');
+const Raven      = require('raven');
+const morgan     = require('morgan');
 
 //Routes
+const benefitRoutes      = require('./api/routes/benefit-routes');
 const businessRoutes     = require('./api/routes/business-routes');
-const couponRoutes       = require('./api/routes/coupon-routes');
 const authRoutes         = require('./api/routes/auth-routes');
 const memberRoutes       = require('./api/routes/member-routes');
 
@@ -31,13 +33,13 @@ mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
     } else if(app.settings.env !== 'test') {
         console.log('Connected to Database: ' + config.mongoURI[app.settings.env]);
     }
-});
+}, { useNewUrlParser: true });
 
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
+router.use('/benefits', benefitRoutes);
 router.use('/business', businessRoutes);
-router.use('/coupon', couponRoutes);
 router.use('/auth', authRoutes);
 router.use('/member', memberRoutes);
 

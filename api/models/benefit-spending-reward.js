@@ -4,7 +4,10 @@ const Schema   = mongoose.Schema;
 
 const SpendingReward = Benefit.discriminator('SpendingReward', new Schema({
     rewardType: { type: String, required: true },
-    acumSpending: { type: Number, required: true } 
+    spendingGoal: { type: Number, required: true } 
+}, 
+{
+    timestamps: true
 }));
 
 module.exports = SpendingReward;

@@ -3,7 +3,6 @@ const config      = require('../../config/server-config');
 const LocalUser   = require('../models/local-user');
 const Member      = require('../models/member');
 const Business    = require('../models/business');
-const Coupon      = require('../models/coupon');
 
 //JWT Strategy Variables
 const passportJwt = require('passport-jwt');
@@ -73,15 +72,6 @@ function verifyMemberOwnership(request, response, next) {
     return next();
 }
 
-function verifyCouponOwnership(request, response, next) {
-    Coupon.findOne({ shortId: request.params.id }, (error, coupon) => {
-        if(error) return response.status(400).json(error);
-        if(!coupon) return response.status(404).json('Coupon not found');
-        if(coupon.businessId != request.user.shortId) return response.status(403).json('Business does not own the specified coupon');
-        return next();
-    });
-}
-
 const actions = {
     authenticateMember: () => {
         return passport.authenticate('members', { session: false });
@@ -92,8 +82,7 @@ const actions = {
     authenticateAdministrator: () => {
         return passport.authenticate('administrators', { session: false });
     },
-    verifyMemberOwnership: verifyMemberOwnership,
-    verifyCouponOwnership: verifyCouponOwnership
+    verifyMemberOwnership: verifyMemberOwnership
 };
 
 module.exports = actions;
