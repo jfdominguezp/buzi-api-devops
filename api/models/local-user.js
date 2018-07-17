@@ -26,14 +26,14 @@ const LocalUserSchema = new Schema({
 
 LocalUserSchema.index({ email: 1, connection: 1 }, { unique: true });
 
-LocalUserSchema.methods.passwordMatch = (password, cb) => {
+LocalUserSchema.methods.passwordMatch = function (password, cb) {
     bcrypt.compare(password, this.passwordHash, (error, isMatch) => {
         if(error) return cb(error);
         return cb(null, isMatch);
     });
 }
 
-LocalUserSchema.statics.changePassword = (_id, connection, password, cb) => {
+LocalUserSchema.statics.changePassword = function (_id, connection, password, cb) {
     this.findOne({ _id, connection }, (error, user) => {
         if(error) return cb(error);
         if(!user) return cb('User does not exist');
@@ -46,7 +46,7 @@ LocalUserSchema.statics.changePassword = (_id, connection, password, cb) => {
     });
 }
 
-LocalUserSchema.statics.markEmailVerified = (_id, cb) => {
+LocalUserSchema.statics.markEmailVerified = function (_id, cb) {
     this.findOne({ _id }, function(error, user) {
         if(error) return cb(error);
         if(!user) return cb('User does not exist');

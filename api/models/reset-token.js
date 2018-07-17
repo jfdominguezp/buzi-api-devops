@@ -14,7 +14,7 @@ const ResetTokenSchema = new Schema({
 ResetTokenSchema.index({ createdAt: 1 }, { expires: '1h' });
 ResetTokenSchema.index({ userId: 1, token: 1 }, { unique: true });
 
-ResetTokenSchema.statics.generateToken = (userId, cb) => {
+ResetTokenSchema.statics.generateToken = function (userId, cb) {
 
     this.findOne({ userId, used: false }, (error, token) => {
         if(error) return cb(error);
@@ -29,7 +29,7 @@ ResetTokenSchema.statics.generateToken = (userId, cb) => {
     });
 }
 
-ResetTokenSchema.statics.useToken = (userId, token, cb) => {
+ResetTokenSchema.statics.useToken = function (userId, token, cb) {
     this.findOne({ userId, token }, (error, token) => {
         if(error) return cb(error);
         if(!token) return cb('Invalid id or token');

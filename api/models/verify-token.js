@@ -15,7 +15,7 @@ const VerifyTokenSchema = new Schema({
 
 VerifyTokenSchema.index({ createdAt: 1 }, { expires: '30d' });
 
-VerifyTokenSchema.statics.generateToken = (userId, provider, isSocial, cb) => {
+VerifyTokenSchema.statics.generateToken = function (userId, provider, isSocial, cb) {
     const VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
     if(!userId || !provider) return cb('Bad Request');
 
@@ -29,7 +29,7 @@ VerifyTokenSchema.statics.generateToken = (userId, provider, isSocial, cb) => {
     return newToken.save(cb);
 }
 
-VerifyTokenSchema.statics.useToken = (token, userId, provider, isSocial, cb) => {
+VerifyTokenSchema.statics.useToken = function (token, userId, provider, isSocial, cb) {
     this.findOne({ token, userId, provider, isSocial }, (error, token) => {
         if(error) return cb(error);
         if(!token) return cb('Invalid id or token');

@@ -15,7 +15,7 @@ const RefreshTokenSchema = new Schema({
 
 RefreshTokenSchema.index({ updatedAt: 1 }, { expires: '10d' });
 
-RefreshTokenSchema.statics.getToken = (token, userId, cb) => {
+RefreshTokenSchema.statics.getToken = function (token, userId, cb) {
     this.findOne({ token, userId }, (error, data) => {
         if(error) return cb(error, null);
         if(!data || !data.token || !data.active) return cb(null, null);
@@ -23,7 +23,7 @@ RefreshTokenSchema.statics.getToken = (token, userId, cb) => {
     });
 };
 
-RefreshTokenSchema.statics.revokeToken = (token, userId, cb) => {
+RefreshTokenSchema.statics.revokeToken = function (token, userId, cb) {
     this.findOneAndUpdate(
         { token, userId },
         { $set: { active: false } },
@@ -36,7 +36,7 @@ RefreshTokenSchema.statics.revokeToken = (token, userId, cb) => {
     );
 };
 
-RefreshTokenSchema.statics.updateLastAccess = (token, userId) => {
+RefreshTokenSchema.statics.updateLastAccess = function (token, userId) {
     this.findOneAndUpdate(
         { token, userId },
         { $set: { lastAccess: Date.now() } },

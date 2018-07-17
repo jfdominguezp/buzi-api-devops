@@ -31,7 +31,7 @@ CustomerEvent.index({ benefitId: 1, code: 1 }, { unique: true });
 
 //Static Methods
 
-CustomerEvent.statics.createCustomerEvent = (couponId, businessId, memberId, maxCustomerEvents, CustomerEventTimes, cb) => {
+CustomerEvent.statics.createCustomerEvent = function (couponId, businessId, memberId, maxCustomerEvents, CustomerEventTimes, cb) {
     const CouponCustomerEvent = mongoose.model('CouponCustomerEvent', CustomerEvent);
     this.where({ couponId }).count((error, count) => {
         if (error) return cb(error);
@@ -56,7 +56,7 @@ CustomerEvent.statics.createCustomerEvent = (couponId, businessId, memberId, max
 };
 
 //TODO Refactor from here
-CustomerEvent.statics.getCustomerEventsByMember = (memberId, cb) => {
+CustomerEvent.statics.getCustomerEventsByMember = function (memberId, cb) {
     const populate = [
         {
             path: 'coupon',
@@ -79,7 +79,7 @@ CustomerEvent.statics.getCustomerEventsByMember = (memberId, cb) => {
         });
 };
 
-CustomerEvent.statics.useCoupon = (couponId, businessId, couponCode, cb) => {
+CustomerEvent.statics.useCoupon = function (couponId, businessId, couponCode, cb) {
     this.findOne({ couponId, businessId, couponCode }, (error, CustomerEvent) => {
         if(error) return cb(error);
         if(!CustomerEvent) return cb('CustomerEvent does not exist');
