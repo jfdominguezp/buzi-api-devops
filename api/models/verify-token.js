@@ -1,6 +1,8 @@
-const mongoose  = require('mongoose');
-const randtoken = require('rand-token');
-const Schema    = mongoose.Schema;
+const mongoose    = require('mongoose');
+const randtoken   = require('rand-token');
+const ErrorTypes  = require('../errors/error-types.json');
+const createError = require('../errors/error-generator');
+const Schema      = mongoose.Schema;
 
 const VerifyTokenSchema = new Schema({
     token: { type: String, required: true },
@@ -15,9 +17,9 @@ const VerifyTokenSchema = new Schema({
 
 VerifyTokenSchema.index({ createdAt: 1 }, { expires: '30d' });
 
-VerifyTokenSchema.statics.generateToken = function (userId, provider, isSocial, cb) {
+VerifyTokenSchema.statics.generateToken = function (userId, provider, isSocial) {
     const VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
-    if(!userId || !provider) return cb('Bad Request');
+    if(!userId || !provider) throw createError(ErrorTypes.general.INCOMPLETE_REQUEST);
 
     const newToken = new VerifyToken({
         userId,
@@ -26,7 +28,7 @@ VerifyTokenSchema.statics.generateToken = function (userId, provider, isSocial, 
         token: randtoken.generate(16)
     });
 
-    return newToken.save(cb);
+    return newToken.save();
 }
 
 VerifyTokenSchema.statics.useToken = function (token, userId, provider, isSocial, cb) {

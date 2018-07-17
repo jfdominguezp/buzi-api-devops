@@ -8,10 +8,13 @@ const cors       = require('cors');
 const Raven      = require('raven');
 const morgan     = require('morgan');
 
+//Middlewares
+const handleErrors   = require('./api/errors/error-handlers');
+
 //Routes
 const benefitRoutes  = require('./api/routes/benefit-routes');
 const businessRoutes = require('./api/routes/business-routes');
-const authRoutes     = require('./api/routes/auth-routes');
+const authRoutes     = require('./api/routes/auth/index');
 const memberRoutes   = require('./api/routes/member-routes');
 
 //Config
@@ -61,11 +64,13 @@ if(app.settings.env === 'production'){
 
 app.use('/api', router);
 
+app.use(handleErrors);
 app.use(Raven.errorHandler());
 app.use(function onError(err, req, res, next) {
     // The error id is attached to `res.sentry` to be returned
     // and optionally displayed to the user for support.
     res.statusCode = 500;
+    console.log(err);
     res.end(res.sentry + '\n');
 });
 

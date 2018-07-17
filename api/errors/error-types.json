@@ -16,6 +16,18 @@
             "code": "API-003",
             "statusCode": 404,
             "message": "Resource not found"
+        },
+
+        "UNEXPECTED_ERROR": {
+            "code": "API-004",
+            "statusCode": 500,
+            "message": "Unexpected error"
+        },
+
+        "BAD_REQUEST": {
+            "code": "API-005",
+            "statusCode": 400,
+            "message": "Bad request body"
         }
     },
 
@@ -50,6 +62,18 @@
             "code": "DB-001",
             "statusCode": 503,
             "message": "Error storing data in the DB"
+        },
+
+        "VALIDATOR_ERROR": {
+            "code": "DB-002",
+            "statusCode": 400,
+            "message": "Model validation error"
+        },
+
+        "DUPLICATE_KEY": {
+            "code": "DB-003",
+            "statusCode": 400,
+            "message": "Duplicate key error"
         }
     }
     

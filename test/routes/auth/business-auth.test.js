@@ -32,9 +32,6 @@ describe('Business Auth', () => {
             response.body.should.have.property('userId');
             response.body.should.have.property('data');
             response.body.data.should.have.property('name').eql(seed.business.name);
-            response.body.should.have.property('tokens');
-            response.body.tokens.should.have.property('accessToken');
-            response.body.tokens.should.have.property('refreshToken');
         });
 
         it ('it should not create a business with invalid email', async () => {
