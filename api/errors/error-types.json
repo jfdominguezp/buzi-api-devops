@@ -21,27 +21,35 @@
 
     "auth": {
         "USER_ALREADY_EXISTS": {
-            "code": "API-004",
+            "code": "AUTH-001",
             "statusCode": "400",
             "message": "User already exists"
         },
 
         "INVALID_CREDENTIALS": {
-            "code": "API-005",
+            "code": "AUTH-002",
             "statusCode": 401,
             "message": "Invalid credentials" 
         },
 
         "BAD_TOKEN": {
-            "code": "API-006",
+            "code": "AUTH-003",
             "statusCode": 400,
             "message": "Bad token"
         }, 
 
         "FORBIDDEN": {
-            "code": "API-007",
+            "code": "AUTH-004",
             "statusCode": 403,
             "message": "User is not allowed to access the specified resource"
+        }
+    },
+
+    "db": {
+        "DB_ERROR": {
+            "code": "DB-001",
+            "statusCode": 503,
+            "message": "Error storing data in the DB"
         }
     }
     
