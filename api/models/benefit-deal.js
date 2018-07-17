@@ -20,4 +20,4 @@ const Deal = Benefit.discriminator('Deal', new Schema({
     timestamps: true
 }));
 
-module.exports = Deal;
+module.exports = mongoose.model('Deal');

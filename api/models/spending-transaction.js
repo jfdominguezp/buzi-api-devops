@@ -9,4 +9,4 @@ const SpendingTransaction = Transaction.discriminator('SpendingTransaction', new
     timestamps: true
 }));
 
-module.export = SpendingTransaction;
+module.export = mongoose.model('SpendingTransaction');

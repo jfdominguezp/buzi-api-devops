@@ -10,4 +10,4 @@ const SpendingReward = Benefit.discriminator('SpendingReward', new Schema({
     timestamps: true
 }));
 
-module.exports = SpendingReward;
+module.exports = mongoose.model('SpendingReward');

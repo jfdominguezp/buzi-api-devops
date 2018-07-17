@@ -26,6 +26,7 @@ const BusinessSchema = new Schema({
     name: { type: String, required: true },
     country: { type: String, required: true },
     city: { type: String, required: true },
+    category: { type: String, required: true },
     logo: String,
     displayImage: String,
     contactData: {
