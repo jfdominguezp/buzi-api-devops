@@ -1,0 +1,48 @@
+{
+    "general": {
+        "INCOMPLETE_REQUEST": {
+            "code": "API-001",
+            "statusCode": 400,
+            "message": "Incomplete request"
+        },
+    
+        "MODEL_INVALID": {
+            "code": "API-002",
+            "statusCode": 400,
+            "message": "Invalid request body"
+        },
+
+        "NOT_FOUND": {
+            "code": "API-003",
+            "statusCode": 404,
+            "message": "Resource not found"
+        }
+    },
+
+    "auth": {
+        "USER_ALREADY_EXISTS": {
+            "code": "API-004",
+            "statusCode": "400",
+            "message": "User already exists"
+        },
+
+        "INVALID_CREDENTIALS": {
+            "code": "API-005",
+            "statusCode": 401,
+            "message": "Invalid credentials" 
+        },
+
+        "BAD_TOKEN": {
+            "code": "API-006",
+            "statusCode": 400,
+            "message": "Bad token"
+        }, 
+
+        "FORBIDDEN": {
+            "code": "API-007",
+            "statusCode": 403,
+            "message": "User is not allowed to access the specified resource"
+        }
+    }
+    
+}
