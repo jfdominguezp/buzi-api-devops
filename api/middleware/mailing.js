@@ -33,7 +33,7 @@ function sendCoupon(coupon, code, user) {
     };
     sendgrid.send(message)
         .catch(function(error) {
-            console.log(error);
+            //TODO Report to Raven
         });
 }
 
@@ -49,7 +49,7 @@ function sendVerificationEmail(name, email, query) {
 
     sendgrid.send(message)
         .catch(function(error) {
-            console.log(error);
+            //TODO Report to Raven
         });
 }
 
@@ -67,7 +67,7 @@ function sendPasswordReset(email, query, connection) {
     };
     sendgrid.send(message)
         .catch(function(error) {
-            console.log(error);
+            //TODO Report to Raven
         });
 }
 

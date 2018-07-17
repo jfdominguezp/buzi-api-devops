@@ -1,0 +1,21 @@
+{
+    "business": {
+        "username": "negocioprueba1",
+        "email": "jfdominguezp@gmail.com",
+        "password": "password1",
+        "name": "Negocio de prueba",
+        "country": "Colombia",
+        "city": "Cali",
+        "category": "Restaurantes y Bares",
+        "contactData": {
+            "name": "Juan Fernando Domínguez",
+            "email": "jfdominguezp@gmail.com",
+            "phoneNumber": "+573182800329"
+        },
+        "internetData": {
+            "website": "www.buziapp.com",
+            "facebookUser": "buziapphq",
+            "instagramUser": "buziapphq"
+        }
+    }
+}

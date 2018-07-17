@@ -9,18 +9,18 @@ const Raven      = require('raven');
 const morgan     = require('morgan');
 
 //Routes
-const benefitRoutes      = require('./api/routes/benefit-routes');
-const businessRoutes     = require('./api/routes/business-routes');
-const authRoutes         = require('./api/routes/auth-routes');
-const memberRoutes       = require('./api/routes/member-routes');
+const benefitRoutes  = require('./api/routes/benefit-routes');
+const businessRoutes = require('./api/routes/business-routes');
+const authRoutes     = require('./api/routes/auth-routes');
+const memberRoutes   = require('./api/routes/member-routes');
 
 //Config
-const config             = require('./config/server-config');
+const config = require('./config/server-config');
 
 //App
 const port     = process.env.PORT || 3000;
-const app        = express();
-const router = express.Router();
+const app      = express();
+const router   = express.Router();
 
 //Configure Raven
 Raven.config('https://1bda48c3836d44df8bc374b629d4c296:503d8785a786416abc68627fe20807af@sentry.io/306530').install();
@@ -30,7 +30,7 @@ app.use(Raven.requestHandler());
 mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
     if(err) {
         console.log('Error connecting to the database. ' + err);
-    } else if(app.settings.env !== 'test') {
+    } else {
         console.log('Connected to Database: ' + config.mongoURI[app.settings.env]);
     }
 }, { useNewUrlParser: true });
@@ -55,7 +55,7 @@ function checkHTTPS(request, response, next){
     next();
 }
 
-if(app.settings.env !== 'development'){
+if(app.settings.env === 'production'){
     app.use(checkHTTPS);
 }
 

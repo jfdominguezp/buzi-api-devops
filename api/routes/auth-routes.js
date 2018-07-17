@@ -159,9 +159,9 @@ function signup(model, modelSchema, connection, returnFields, usernameRequired, 
         insertUser(body, connection, usernameRequired, (error, newUser) => {
             if(error) {
                 if(error.code && error.code == 11000) return response.status(400).json('User already exists');
-                return response.status(500).json('Unexpected error');
+                return response.status(500).json(error);
             }
-            if(!newUser) return response.status(500).json('Unexpected error');
+            if(!newUser) return response.status(500).json(error);
             const newIdentity = { userId: newUser._id, provider: 'Local', isSocial: false };
             user.identities.push(newIdentity);
             user.save((error, data) => {
