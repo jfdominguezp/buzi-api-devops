@@ -44,63 +44,49 @@ describe('Business Auth', () => {
             response.body.data.should.have.property('name').eql(seed.business.name);
         });
 
-        it ('it should not create a business with invalid email', async () => {
+        it ('it should not create a business with missing credentials or validation errors', async () => {
+            const { VALIDATOR_ERROR } = db;
+            const { INVALID_CREDENTIALS } = auth;
+            const cases = [];
+            const addCase = (errorCase) => {
+                cases.push(errorCase);
+                business = Object.assign({ }, business);
+            }
+            
+            //Bad email
             business.email = 'test@test';
-            const { code, statusCode } = db.VALIDATOR_ERROR;
-            const response = await chai.request(server)
-                .post(`${BASE_PATH}/signup`)
-                .send(business);
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-        });
+            addCase({ business, errorType: VALIDATOR_ERROR });
 
-        it ('it should not create a business without email, username or password', async () => {
-            const { code, statusCode } = auth.INVALID_CREDENTIALS;
-            //Email validation
+            //No email
             delete business.email;
-            let response = await chai.request(server)
-                .post(`${BASE_PATH}/signup`)
-                .send(business);
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
+            addCase({ business, errorType: INVALID_CREDENTIALS });
 
-            //Username validation
-            business = Object.assign({ }, seed.business);
+            //No username
             delete business.username;
-            response = await chai.request(server)
-                .post(`${BASE_PATH}/signup`)
-                .send(business);
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
+            addCase({ business, errorType: INVALID_CREDENTIALS });
 
-            //Password validation
-            business = Object.assign({ }, seed.business);
+            //No password
             delete business.password;
-            response = await chai.request(server)
-                .post(`${BASE_PATH}/signup`)
-                .send(business);
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-        });
+            addCase({ business, errorType: INVALID_CREDENTIALS });
 
-        it ('it should not create a business with required fields missing', async () => {
+            //Required fields missing
             delete business.name;
-            const { code, statusCode } = db.VALIDATOR_ERROR;
-            const response = await chai.request(server)
-                .post(`${BASE_PATH}/signup`)
-                .send(business);
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-        });
+            addCase({ business, errorType: VALIDATOR_ERROR });
 
-        it ('it should not create a business with bad structure', async () => {
+            //Bad structure
             business.contactData = "Contact data";
-            const { code, statusCode } = db.VALIDATOR_ERROR;
-            const response = await chai.request(server)
-                .post(`${BASE_PATH}/signup`)
-                .send(business);
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
+            addCase({ business, errorType: VALIDATOR_ERROR });
+
+            let response;
+            cases.forEach(async ({ business, errorType }) => {
+                const { code, statusCode } = errorType;
+                response = await chai.request(server)
+                    .post(`${BASE_PATH}/signup`)
+                    .send(business);
+                response.should.have.status(statusCode);
+                response.body.should.have.property('apiErrorCode').eql(code);
+            });
+
         });
 
         it ('it should not create a business user with an already existing email or username', async () => {
@@ -154,67 +140,33 @@ describe('Business Auth', () => {
             response.body.data.should.have.property('_id').eql(data._id);
         });
     
-        it ('it should not sign a business in without a password', async () => {
-            const { email, username } = business;
-            const { code, statusCode } = auth.INVALID_CREDENTIALS;
-    
-    
-            let response = await chai.request(server)
-                .post(`${BASE_PATH}/signin`)
-                .send({ email });
-                
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-    
-            response = await chai.request(server)
-                .post(`${BASE_PATH}/signin`)
-                .send({ username });
-    
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-        });
+        it ('it should not sign a business in if wrong credentials given or user does not exist', async () => {
+            const { email, username, password } = business;
+            const { INVALID_CREDENTIALS, INCORRECT_PASSWORD } = auth;
 
-        it ('it should not sign a business in with an unregistered email or username', async () => {
-            const email = 'random@email.com';
-            const username = 'random_username';
-            const { password } = business;
-            const { code, statusCode } = auth.INVALID_CREDENTIALS;
+            const cases = [
+                //No password
+                { credentials: { email }, errorType: INVALID_CREDENTIALS },
+                { credentials: { username }, errorType: INVALID_CREDENTIALS },
+                //No email or username
+                { credentials: { password }, errorType: INVALID_CREDENTIALS },
+                //Unregistered email or username
+                { credentials: { password, email: 'x@x.com' }, errorType: INVALID_CREDENTIALS },
+                { credentials: { password, username: 'xxx' }, errorType: INVALID_CREDENTIALS },
+                //Wrong password
+                { credentials: { email, password: 'incorrect_password' }, errorType: INCORRECT_PASSWORD },
+                { credentials: { username, password: 'incorrect_password' }, errorType: INCORRECT_PASSWORD }
+            ];
 
-            let response = await chai.request(server)
-                .post(`${BASE_PATH}/signin`)
-                .send({ email, password });
-
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-
-            response = await chai.request(server)
-                .post(`${BASE_PATH}/signin`)
-                .send({ username, password });
-
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-
-        });
-
-        it ('it should not sign a business in with an incorrect password', async () => {
-            const { code, statusCode } = auth.INCORRECT_PASSWORD;
-            const password = "incorrect_password";
-            const { email, username } = business;
-
-            let response = await chai.request(server)
-                .post(`${BASE_PATH}/signin`)
-                .send({ email, password });
-            
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-
-            response = await chai.request(server)
-                .post(`${BASE_PATH}/signin`)
-                .send({ username, password });
-            
-            response.should.have.status(statusCode);
-            response.body.should.have.property('apiErrorCode').eql(code);
-
+            let response;
+            cases.forEach(async ({ credentials, errorType }) => {
+                const { code, statusCode } = errorType;
+                response = await chai.request(server)
+                    .post(`${BASE_PATH}/signin`)
+                    .send(credentials);
+                response.should.have.status(statusCode);
+                response.body.should.have.property('apiErrorCode').eql(code);
+            });
         });
     });
 });
