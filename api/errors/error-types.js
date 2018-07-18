@@ -48,6 +48,12 @@ const ErrorTypes = {
             code: 'AUTH-004',
             statusCode: 403,
             message: 'User is not allowed to access the specified resource'
+        },
+
+        INCORRECT_PASSWORD: {
+            code: 'AUTH-005',
+            statusCode: 401,
+            message: 'Invalid password'
         }
     },
 

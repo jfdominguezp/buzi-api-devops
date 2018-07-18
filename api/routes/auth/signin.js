@@ -1,18 +1,25 @@
 const jwt             = require('jsonwebtoken');
 const randtoken       = require('rand-token');
+const mongoose        = require('mongoose');
 const LocalUser       = require('../../models/local-user');
 const RefreshToken    = require('../../models/refresh-token');
 const { createError } = require('../../errors/error-generator');
 const ErrorTypes      = require('../../errors/error-types');
 const { authConfig }  = require('../../../config/server-config');
 
-async function signin(returnFields, connection, schema, credentials) {
+const {
+    INVALID_CREDENTIALS,
+    GENERAL_AUTH_ERROR,
+    INCORRECT_PASSWORD
+} = ErrorTypes.auth;
+
+async function signin(credentials, model, connection, returnFields) {
     const user = await authenticateCredentials(credentials, connection);
-    if(!user) throw createError(ErrorTypes.auth.INVALID_CREDENTIALS, 'User does not exist');
+    if(!user) throw createError(INVALID_CREDENTIALS, 'User does not exist');
 
     const query = { 'identities.userId': user._id, 'identities.provider': 'Local', 'identities.isSocial': false };
-    const userData = await schema.findOne(query);
-    if (!userData) throw createError(ErrorTypes.auth.GENERAL_AUTH_ERROR, 'General Auth Error');
+    const userData = await mongoose.model(model).findOne(query);
+    if (!userData) throw createError(GENERAL_AUTH_ERROR, 'General Auth Error');
 
     const resData = { };
     returnFields.forEach(field => { resData[field] = userData[field] });
@@ -23,13 +30,15 @@ async function signin(returnFields, connection, schema, credentials) {
 }
 
 async function authenticateCredentials({ email, password, username }, connection) {
-    const query = { email, username, connection };
+    let query = { connection };
+    if (username) query = { username, ...query };
+    if (email) query = { email, ...query }
 
     const user = await LocalUser.findOne(query);
-    if (!user) throw createError(ErrorTypes.auth.INVALID_CREDENTIALS, 'User does not exist');
+    if (!user) throw createError(INVALID_CREDENTIALS, 'User does not exist');
 
     const isMatch = await user.passwordMatch(password);
-    if (!isMatch) throw createError(ErrorTypes.auth.INVALID_CREDENTIALS, 'Wrong password');
+    if (!isMatch) throw createError(INCORRECT_PASSWORD, 'Wrong password');
 
     return user;
 }
