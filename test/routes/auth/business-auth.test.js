@@ -54,7 +54,6 @@ describe('Business Auth', () => {
         it ('it should not create a business without email, username or password', async () => {
             //Email validation
             delete business.email;
-            console.log(business);
             let response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
@@ -62,9 +61,8 @@ describe('Business Auth', () => {
             response.body.should.have.property('apiErrorCode');
 
             //Username validation
-            business = seed.business;
+            business = Object.assign({ }, seed.business);
             delete business.username;
-            console.log(business);
             response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
@@ -72,9 +70,8 @@ describe('Business Auth', () => {
             response.body.should.have.property('apiErrorCode');
 
             //Password validation
-            business = seed.business;
+            business = Object.assign({ }, seed.business);
             delete business.password;
-            console.log(business);
             response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
