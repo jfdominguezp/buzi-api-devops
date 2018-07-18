@@ -32,12 +32,6 @@
     },
 
     "auth": {
-        "USER_ALREADY_EXISTS": {
-            "code": "AUTH-001",
-            "statusCode": "400",
-            "message": "User already exists"
-        },
-
         "INVALID_CREDENTIALS": {
             "code": "AUTH-002",
             "statusCode": 401,

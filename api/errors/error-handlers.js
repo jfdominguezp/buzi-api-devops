@@ -9,6 +9,9 @@ function handleErrors(error, request, response, next) {
     if (error instanceof MongoError) {
         return handleDatabaseError(error, response);
     }
+    if (error.apiErrorCode) {
+        return handleApiError(error, response);
+    }
     next(error);
 }
 
@@ -29,6 +32,10 @@ function handleDatabaseError(error, response) {
         error,
         response
     );
+}
+
+function handleApiError(error, response) {
+    return response.status(error.statusCode).json(error);
 }
 
 module.exports = handleErrors;

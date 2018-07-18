@@ -28,7 +28,7 @@ async function businessSignup(request, response) {
     const business = new Business(request.body);
     await business.validate();
     const { email, password, username } = request.body ;
-    const returnFields = ['shortId', 'name', 'logo'];
+    const returnFields = ['_id', 'name', 'logo'];
     const resData = await signup(
         { email, password, username }, 
         business, 

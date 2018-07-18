@@ -1,9 +1,9 @@
-const bcrypt      = require('bcrypt');
-const LocalUser   = require('../../models/local-user');
-const VerifyToken = require('../../models/verify-token');
-const ErrorTypes  = require('../../errors/error-types.json');
-const createError = require('../../errors/error-generator');
-const mailing     = require('../../middleware/mailing');
+const bcrypt          = require('bcrypt');
+const LocalUser       = require('../../models/local-user');
+const VerifyToken     = require('../../models/verify-token');
+const ErrorTypes      = require('../../errors/error-types.json');
+const { createError } = require('../../errors/error-generator');
+const mailing         = require('../../middleware/mailing');
 
 async function signup({ email, password, username }, schemaInstance, connection, returnFields, usernameRequired) {
     //Admin, Member or Business

@@ -6,12 +6,14 @@ const chaiHttp   = require('chai-http');
 const should     = chai.should();
 const server     = require('../../../server');
 const seed       = require('./seed.json');
+const ErrorTypes = require('../../../api/errors/error-types.json');
 
 const LocalUser = require('../../../api/models/local-user');
 const Business  = require('../../../api/models/business');
 
 const { it, describe, beforeEach } = mocha;
 const BASE_PATH = '/api/auth/business';
+let business;
 
 chai.use(chaiHttp);
 
@@ -19,29 +21,99 @@ describe('Business Auth', () => {
     beforeEach('clean businesses and local users', async () => {
         await Business.remove({});
         await LocalUser.remove({});
+        business = Object.assign({ }, seed.business);
     });
 
     describe('POST /api/auth/business/signup', () => {
-        it ('it should create a business user and login it', async () => {
+        it ('it should create a business and a local user', async () => {
             const response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(seed.business);
             
             response.should.have.status(200);
             response.body.should.be.a('object');
+
+            //userId represents the local user
             response.body.should.have.property('userId');
             response.body.should.have.property('data');
+
+            //data._id represents the business record
+            response.body.data.should.have.property('_id');
             response.body.data.should.have.property('name').eql(seed.business.name);
         });
 
         it ('it should not create a business with invalid email', async () => {
-            let business = seed.business;
             business.email = 'test@test';
 
+            const response = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+            response.should.have.status(400);
+        });
+
+        it ('it should not create a business without email, username or password', async () => {
+            //Email validation
+            delete business.email;
+            console.log(business);
             let response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
             response.should.have.status(400);
+            response.body.should.have.property('apiErrorCode');
+
+            //Username validation
+            business = seed.business;
+            delete business.username;
+            console.log(business);
+            response = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+            response.should.have.status(400);
+            response.body.should.have.property('apiErrorCode');
+
+            //Password validation
+            business = seed.business;
+            delete business.password;
+            console.log(business);
+            response = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+            response.should.have.status(400);
+            response.body.should.have.property('apiErrorCode');
+        });
+
+        it ('it should not create a business with required fields missing', async () => {
+            delete business.name;
+
+            const response = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+            response.should.have.status(400);
+            response.body.should.have.property('apiErrorCode').eql(ErrorTypes.db.VALIDATOR_ERROR.code);
+        });
+
+        it ('it should not create a business with bad structure', async () => {
+            business.contactData = "Contact data";
+            const response = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+            response.should.have.status(400);
+            response.body.should.have.property('apiErrorCode').eql(ErrorTypes.db.VALIDATOR_ERROR.code);
+        });
+
+        it ('it should not create a business user with an already existing email or username', async () => {
+            const response = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+            response.should.have.status(200);
+            response.body.should.have.property('userId');
+
+            const resend = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(business);
+
+            resend.should.have.status(400);
+            resend.body.should.have.property('apiErrorCode').eql(ErrorTypes.db.DUPLICATE_KEY.code);
         });
     });
 });
