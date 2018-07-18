@@ -1,31 +1,25 @@
 const ErrorTypes = {
     general: {
-        INCOMPLETE_REQUEST: {
-            code: 'API-001',
-            statusCode: 400,
-            message: 'Incomplete request'
-        },
-    
         MODEL_INVALID: {
-            code: 'API-002',
+            code: 'API-001',
             statusCode: 400,
             message: 'Invalid request body'
         },
 
         NOT_FOUND: {
-            code: 'API-003',
+            code: 'API-002',
             statusCode: 404,
             message: 'Resource not found'
         },
 
         UNEXPECTED_ERROR: {
-            code: 'API-004',
+            code: 'API-003',
             statusCode: 500,
             message: 'Unexpected error'
         },
 
         BAD_REQUEST: {
-            code: 'API-005',
+            code: 'API-004',
             statusCode: 400,
             message: 'Bad request body'
         }

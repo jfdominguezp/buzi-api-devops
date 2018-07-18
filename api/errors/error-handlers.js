@@ -1,6 +1,6 @@
 const { MongoError }                 = require('mongodb');
 const { createErrorAndSendResponse } = require('./error-generator');
-const ErrorTypes                     = require('./error-types.json');
+const ErrorTypes                     = require('./error-types');
 
 function handleErrors(error, request, response, next) {
     if (error.name && error.name === 'ValidationError') {

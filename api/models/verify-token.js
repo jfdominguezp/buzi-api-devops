@@ -1,6 +1,6 @@
 const mongoose    = require('mongoose');
 const randtoken   = require('rand-token');
-const ErrorTypes  = require('../errors/error-types.json');
+const ErrorTypes  = require('../errors/error-types');
 const createError = require('../errors/error-generator');
 const Schema      = mongoose.Schema;
 

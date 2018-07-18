@@ -6,7 +6,7 @@ const chaiHttp        = require('chai-http');
 const should          = chai.should();
 const server          = require('../../../server');
 const seed            = require('./seed.json');
-const { general, db } = require('../../../api/errors/error-types.json');
+const { auth, db }    = require('../../../api/errors/error-types');
 
 const LocalUser = require('../../../api/models/local-user');
 const Business  = require('../../../api/models/business');
@@ -52,13 +52,14 @@ describe('Business Auth', () => {
         });
 
         it ('it should not create a business without email, username or password', async () => {
+            const { code, statusCode } = auth.INVALID_CREDENTIALS;
             //Email validation
             delete business.email;
             let response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
-            response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode').eql(general.BAD_REQUEST.code);
+            response.should.have.status(statusCode);
+            response.body.should.have.property('apiErrorCode').eql(code);
 
             //Username validation
             business = Object.assign({ }, seed.business);
@@ -66,8 +67,8 @@ describe('Business Auth', () => {
             response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
-            response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode').eql(general.BAD_REQUEST.code);
+            response.should.have.status(statusCode);
+            response.body.should.have.property('apiErrorCode').eql(code);
 
             //Password validation
             business = Object.assign({ }, seed.business);
@@ -75,8 +76,8 @@ describe('Business Auth', () => {
             response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
-            response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode').eql(general.BAD_REQUEST.code);
+            response.should.have.status(statusCode);
+            response.body.should.have.property('apiErrorCode').eql(code);
         });
 
         it ('it should not create a business with required fields missing', async () => {

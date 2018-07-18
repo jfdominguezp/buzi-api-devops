@@ -33,7 +33,7 @@ app.use(Raven.requestHandler());
 mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
     if(err) {
         console.log('Error connecting to the database. ' + err);
-    } else {
+    } else if(app.settings.env !== 'test') {
         console.log('Connected to Database: ' + config.mongoURI[app.settings.env]);
     }
 }, { useNewUrlParser: true });
@@ -46,8 +46,9 @@ router.use('/business', businessRoutes);
 router.use('/auth', authRoutes);
 router.use('/member', memberRoutes);
 
-
-app.use(morgan('dev'));
+if (app.settings.env === 'development') {
+    app.use(morgan('dev'));
+}
 
 app.use(cors());
 
@@ -75,6 +76,9 @@ app.use(function onError(err, req, res, next) {
 
 
 app.listen(port);
-console.log('Magic happens on port ' + port);
+
+if(app.settings.env !== 'test'){
+    console.log('Magic happens on port ' + port);
+}
 
 module.exports = app;
