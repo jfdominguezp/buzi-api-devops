@@ -1,12 +1,12 @@
 process.env.NODE_ENV = 'test';
 
-const mocha      = require('mocha');
-const chai       = require('chai');
-const chaiHttp   = require('chai-http');
-const should     = chai.should();
-const server     = require('../../../server');
-const seed       = require('./seed.json');
-const ErrorTypes = require('../../../api/errors/error-types.json');
+const mocha           = require('mocha');
+const chai            = require('chai');
+const chaiHttp        = require('chai-http');
+const should          = chai.should();
+const server          = require('../../../server');
+const seed            = require('./seed.json');
+const { general, db } = require('../../../api/errors/error-types.json');
 
 const LocalUser = require('../../../api/models/local-user');
 const Business  = require('../../../api/models/business');
@@ -58,7 +58,7 @@ describe('Business Auth', () => {
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
             response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode');
+            response.body.should.have.property('apiErrorCode').eql(general.BAD_REQUEST.code);
 
             //Username validation
             business = Object.assign({ }, seed.business);
@@ -67,7 +67,7 @@ describe('Business Auth', () => {
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
             response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode');
+            response.body.should.have.property('apiErrorCode').eql(general.BAD_REQUEST.code);
 
             //Password validation
             business = Object.assign({ }, seed.business);
@@ -76,7 +76,7 @@ describe('Business Auth', () => {
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
             response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode');
+            response.body.should.have.property('apiErrorCode').eql(general.BAD_REQUEST.code);
         });
 
         it ('it should not create a business with required fields missing', async () => {
@@ -86,7 +86,7 @@ describe('Business Auth', () => {
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
             response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode').eql(ErrorTypes.db.VALIDATOR_ERROR.code);
+            response.body.should.have.property('apiErrorCode').eql(db.VALIDATOR_ERROR.code);
         });
 
         it ('it should not create a business with bad structure', async () => {
@@ -95,7 +95,7 @@ describe('Business Auth', () => {
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
             response.should.have.status(400);
-            response.body.should.have.property('apiErrorCode').eql(ErrorTypes.db.VALIDATOR_ERROR.code);
+            response.body.should.have.property('apiErrorCode').eql(db.VALIDATOR_ERROR.code);
         });
 
         it ('it should not create a business user with an already existing email or username', async () => {
@@ -110,7 +110,7 @@ describe('Business Auth', () => {
                 .send(business);
 
             resend.should.have.status(400);
-            resend.body.should.have.property('apiErrorCode').eql(ErrorTypes.db.DUPLICATE_KEY.code);
+            resend.body.should.have.property('apiErrorCode').eql(db.DUPLICATE_KEY.code);
         });
     });
 });

@@ -18,7 +18,7 @@ const authRoutes     = require('./api/routes/auth/index');
 const memberRoutes   = require('./api/routes/member-routes');
 
 //Config
-const config = require('./config/server-config');
+const config   = require('./config/server-config');
 
 //App
 const port     = process.env.PORT || 3000;
@@ -70,7 +70,6 @@ app.use(function onError(err, req, res, next) {
     // The error id is attached to `res.sentry` to be returned
     // and optionally displayed to the user for support.
     res.statusCode = 500;
-    console.log(err);
     res.end(res.sentry + '\n');
 });
 

@@ -1,8 +1,6 @@
 const bcrypt          = require('bcrypt');
 const LocalUser       = require('../../models/local-user');
 const VerifyToken     = require('../../models/verify-token');
-const ErrorTypes      = require('../../errors/error-types.json');
-const { createError } = require('../../errors/error-generator');
 const mailing         = require('../../middleware/mailing');
 
 async function signup({ email, password, username }, schemaInstance, connection, returnFields, usernameRequired) {
@@ -18,10 +16,7 @@ async function signup({ email, password, username }, schemaInstance, connection,
     return { userId: localUser._id, data: responseData };
 }
 
-async function insertLocalUser({ email, password, username }, connection, usernameRequired){
-    if( !connection || !email || !password || (usernameRequired && !username) || (!usernameRequired && username)) {
-        throw createError(ErrorTypes.general.BAD_REQUEST);
-    }
+async function insertLocalUser({ email, password, username }, connection){
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = new LocalUser({ email, passwordHash, connection, username });
     return newUser.save();

@@ -26,11 +26,8 @@ const LocalUserSchema = new Schema({
 
 LocalUserSchema.index({ email: 1, connection: 1 }, { unique: true });
 
-LocalUserSchema.methods.passwordMatch = function (password, cb) {
-    bcrypt.compare(password, this.passwordHash, (error, isMatch) => {
-        if(error) return cb(error);
-        return cb(null, isMatch);
-    });
+LocalUserSchema.methods.passwordMatch = async function (password) {
+    return bcrypt.compare(password, this.passwordHash);
 }
 
 LocalUserSchema.statics.changePassword = function (_id, connection, password, cb) {
