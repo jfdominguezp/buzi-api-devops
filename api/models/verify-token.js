@@ -1,8 +1,10 @@
-var mongoose  = require('mongoose');
-var randtoken = require('rand-token');
-var Schema    = mongoose.Schema;
+const mongoose        = require('mongoose');
+const randtoken       = require('rand-token');
+const { general }     = require('../errors/error-types');
+const { createError } = require('../errors/error-generator');
+const Schema          = mongoose.Schema;
 
-var VerifyTokenSchema = new Schema({
+const VerifyTokenSchema = new Schema({
     token: { type: String, required: true },
     userId: { type: String, required: true },
     provider: { type: String, required: true },
@@ -15,27 +17,26 @@ var VerifyTokenSchema = new Schema({
 
 VerifyTokenSchema.index({ createdAt: 1 }, { expires: '30d' });
 
-VerifyTokenSchema.statics.generateToken = function(userId, provider, isSocial, cb) {
-    var VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
-    var newToken = new VerifyToken();
-    if(!userId || !provider) return cb('Bad Request');
+VerifyTokenSchema.statics.generateToken = function (userId, provider, isSocial) {
+    const VerifyToken = mongoose.model('VerifyToken', VerifyTokenSchema);
+    if(!userId || !provider) throw createError(general.INCOMPLETE_REQUEST);
 
-    newToken.token = randtoken.generate(16);
-    newToken.userId = userId;
-    newToken.provider = provider;
-    newToken.isSocial = isSocial;
+    const newToken = new VerifyToken({
+        userId,
+        provider,
+        isSocial,
+        token: randtoken.generate(16)
+    });
 
-    return newToken.save(cb);
+    return newToken.save();
 }
 
-VerifyTokenSchema.statics.useToken = function(token, userId, provider, isSocial, cb) {
-    this.findOne({ token: token, userId: userId, provider: provider, isSocial: isSocial }, function(error, token) {
-        if(error) return cb(error);
-        if(!token) return cb('Invalid id or token');
-        if(token.used) return cb('Token used');
-        token.used = true;
-        return token.save(cb);
-    });
+VerifyTokenSchema.statics.useToken = async function (token, userId, provider, isSocial) {
+    const verifyToken = await this.findOne({ token, userId, provider, isSocial });
+    if(!verifyToken) throw createError(general.NOT_FOUND, 'Verification token not found');
+    if(verifyToken.used) throw createError(general.BAD_REQUEST, 'Token already used');
+    verifyToken.used = true;
+    return verifyToken.save();
 }
 
 

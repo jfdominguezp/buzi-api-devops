@@ -1,0 +1,23 @@
+{
+    "coupon": {
+        "from": {
+            "name": "",
+            "email": ""
+        },
+        "templateId": "781ba84d-4695-47b1-b514-49fb4f5d2eb8"
+    },
+    "passwordReset": {
+        "from": {
+            "name": "",
+            "email": ""
+        },
+        "templateId": "2e84ede3-2c5d-4128-8b5d-31ad0cca1547"
+    },
+    "emailVerification": {
+        "from": {
+            "name": "",
+            "email": ""
+        },
+        "templateId": "a98d411b-af61-425c-9ff3-41cdbe000e24"
+    }
+}

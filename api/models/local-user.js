@@ -1,9 +1,11 @@
-var mongoose  = require('mongoose');
-var bcrypt    = require('bcrypt');
-var validator = require('email-validator');
-var Schema    = mongoose.Schema;
+const mongoose        = require('mongoose');
+const bcrypt          = require('bcrypt');
+const validator       = require('email-validator');
+const { createError } = require('../errors/error-generator');
+const { NOT_FOUND }   = require('../errors/error-types').general;
+const Schema          = mongoose.Schema;
 
-var LocalUserSchema = new Schema({
+const LocalUserSchema = new Schema({
     connection: { type: String, required: true, enum: ['People', 'Businesses', 'Administrators'] },
     email: {
         type: String,
@@ -26,33 +28,24 @@ var LocalUserSchema = new Schema({
 
 LocalUserSchema.index({ email: 1, connection: 1 }, { unique: true });
 
-LocalUserSchema.methods.passwordMatch = function(password, cb) {
-    bcrypt.compare(password, this.passwordHash, function(error, isMatch) {
-        if(error) return cb(error);
-        return cb(null, isMatch);
-    });
+LocalUserSchema.methods.passwordMatch = async function (password) {
+    return bcrypt.compare(password, this.passwordHash);
 }
 
-LocalUserSchema.statics.changePassword = function(connection, userId, password, cb) {
-    this.findOne({ _id: userId, connection: connection }, function(error, user) {
-        if(error) return cb(error);
-        if(!user) return cb('User does not exist');
-
-        bcrypt.hash(password, 10, function(error, hash) {
-            if(error || !hash) return cb('Error');
-            user.passwordHash = hash;
-            user.save(cb);
-        });
-    });
+LocalUserSchema.statics.changePassword = async function (_id, connection, password) {
+    const user = await this.findOne({ _id, connection });
+    if(!user) throw createError(NOT_FOUND, 'User does not exist');
+    const hash = await bcrypt.hash(password, 10);
+    user.passwordHash = hash;
+    return user.save();
 }
 
-LocalUserSchema.statics.markEmailVerified = function(userId, cb) {
-    this.findOne({ _id: userId }, function(error, user) {
-        if(error) return cb(error);
-        if(!user) return cb('User does not exist');
-        user.email_verified = true;
-        user.save(cb);
-    });
+LocalUserSchema.statics.markEmailVerified = async function (_id) {
+    const user = await this.findOne({ _id });
+    if(!user) throw createError(NOT_FOUND, 'User does not exist');
+    if(user.email_verified) return user;
+    user.email_verified = true;
+    return user.save();
 }
 
 module.exports = mongoose.model('LocalUser', LocalUserSchema);

@@ -1,7 +1,9 @@
-var mongoose = require('mongoose');
-var Schema   = mongoose.Schema;
+const mongoose        = require('mongoose');
+const Schema          = mongoose.Schema;
+const { createError } = require('../errors/error-generator');
+const ErrorTypes      = require('../errors/error-types');
 
-var RefreshTokenSchema = new Schema({
+const RefreshTokenSchema = new Schema({
     token: { type: String, required: true },
     userId: { type: String, required: true },
     provider: { type: String, required: true },
@@ -15,35 +17,35 @@ var RefreshTokenSchema = new Schema({
 
 RefreshTokenSchema.index({ updatedAt: 1 }, { expires: '10d' });
 
-RefreshTokenSchema.statics.getToken = function(token, userId, cb) {
-    this.findOne({ token: token, userId: userId }, function(error, data) {
-        if(error) return cb(error, false);
-        if(!data || !data.token || !data.active) return cb(null, false);
-        return cb(null, data);
-    });
+RefreshTokenSchema.statics.getToken = async function (token) {
+    const refreshToken = await this.findOne({ token });
+    if(!refreshToken || !refreshToken.token || !refreshToken.active) {
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token');
+    }
+    return refreshToken;
 };
 
-RefreshTokenSchema.statics.revokeToken = function(token, userId, cb) {
-    this.findOneAndUpdate(
-        { token: token, userId: userId },
+RefreshTokenSchema.statics.revokeToken = async function (token, userId) {
+    const refreshToken = await this.findOneAndUpdate(
+        { token, userId },
         { $set: { active: false } },
-        { new: true },
-        function(error, data) {
-            if(error) return cb(error);
-            if(!data || !data.token) return cb('Token not found');
-            return cb(null, data);
-        }
+        { new: true }
     );
+    if(!refreshToken || !refreshToken.token) {
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token or id');
+    }
+    return refreshToken;
 };
 
-RefreshTokenSchema.statics.updateLastAccess = function(token, userId) {
-    this.findOneAndUpdate(
-        { token: token, userId: userId },
-        { $set: { lastAccess: Date.now() } },
-        function(error, token) {
-            if(error) console.log('Error updating refresh token ' + token.token + ' with userId ' +  token.userId);
-        }
+RefreshTokenSchema.statics.updateLastAccess = async function (token, userId) {
+    const refreshToken = await this.findOneAndUpdate(
+        { token, userId },
+        { $set: { lastAccess: Date.now() } }
     );
-}
+    if(!refreshToken || !refreshToken.token) {
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token or id');
+    }
+    return refreshToken;
+};
 
 module.exports = mongoose.model('RefreshToken', RefreshTokenSchema);

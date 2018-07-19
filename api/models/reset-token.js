@@ -1,8 +1,10 @@
-var mongoose  = require('mongoose');
-var randtoken = require('rand-token');
-var Schema    = mongoose.Schema;
+const mongoose          = require('mongoose');
+const randtoken         = require('rand-token');
+const { auth, general } = require('../errors/error-types');
+const { createError }   = require('../errors/error-generator');
+const Schema            = mongoose.Schema;
 
-var ResetTokenSchema = new Schema({
+const ResetTokenSchema = new Schema({
     token: { type: String, required: true },
     userId: { type: String, required: true },
     used: { type: Boolean, default: false }
@@ -14,29 +16,23 @@ var ResetTokenSchema = new Schema({
 ResetTokenSchema.index({ createdAt: 1 }, { expires: '1h' });
 ResetTokenSchema.index({ userId: 1, token: 1 }, { unique: true });
 
-ResetTokenSchema.statics.generateToken = function(userId, cb) {
-    var ResetToken = mongoose.model('ResetToken', ResetTokenSchema);
-    var newToken = new ResetToken();
-
-    this.findOne({ userId: userId, used: false }, function(error, token) {
-        if(error) return cb(error);
-        if(token) return cb(null, token);
-
-        newToken.token = randtoken.generate(24);
-        newToken.userId = userId;
-
-        newToken.save(cb);
+ResetTokenSchema.statics.generateToken = async function (userId) {
+    const token = await this.findOne({ userId, used: false });
+    if(token) return token;
+    const ResetToken = mongoose.model('ResetToken', ResetTokenSchema);
+    const newToken = new ResetToken({
+        userId,
+        token: randtoken.generate(24)
     });
+    return newToken.save();
 }
 
-ResetTokenSchema.statics.useToken = function(userId, token, cb) {
-    this.findOne({ userId: userId, token: token }, function(error, token) {
-        if(error) return cb(error);
-        if(!token) return cb('Invalid id or token');
-        if(token.used) return cb('Token used');
-        token.used = true;
-        return token.save(cb);
-    });
+ResetTokenSchema.statics.useToken = async function (userId, token) {
+    const resetToken = await this.findOne({ userId, token });
+    if(!resetToken) throw createError(general.NOT_FOUND, 'Invalid id or token');
+    if(resetToken.used) throw createError(auth.RESET_TOKEN_USED, 'Reset token already used');
+    resetToken.used = true;
+    return resetToken.save();
 }
 
 module.exports = mongoose.model('ResetToken', ResetTokenSchema);
