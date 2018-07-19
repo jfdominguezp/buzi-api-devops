@@ -16,7 +16,6 @@ const BASE_PATH = '/api/auth/business';
 let business;
 let addResponse;
 let resetToken;
-let localUser;
 
 chai.use(chaiHttp);
 
@@ -302,7 +301,6 @@ describe('Business Auth', () => {
             signedIn.body.should.have.property('userId').eql(userId);
             signedIn.body.should.have.property('data');
             signedIn.body.data.should.have.property('_id').eql(data._id);
-
         });
     });
 });
