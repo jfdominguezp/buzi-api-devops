@@ -1,14 +1,14 @@
-const mocha           = require('mocha');
-const chai            = require('chai');
-const chaiHttp        = require('chai-http');
-const should          = chai.should();
-const server          = require('../../../server');
-const seed            = require('./seed.json');
-const { auth, db }    = require('../../../api/errors/error-types');
+const mocha                 = require('mocha');
+const chai                  = require('chai');
+const chaiHttp              = require('chai-http');
+const should                = chai.should();
+const server                = require('../../../server');
+const seed                  = require('./seed.json');
+const { auth, db, general } = require('../../../api/errors/error-types');
 
-const LocalUser = require('../../../api/models/local-user');
-const Business  = require('../../../api/models/business');
-
+const LocalUser  = require('../../../api/models/local-user');
+const Business   = require('../../../api/models/business');
+const ResetToken = require('../../../api/models/reset-token');
 const { it, describe, beforeEach } = mocha;
 const BASE_PATH = '/api/auth/business';
 
@@ -168,5 +168,53 @@ describe('Business Auth', () => {
                 response.body.should.have.property('apiErrorCode').eql(code);
             });
         });
+    });
+
+    describe ('POST /api/auth/business/reset', () => {
+        beforeEach('clean and insert base user', async () => {
+            business = Object.assign({ }, seed.business);
+            await Business.remove({});
+            await LocalUser.remove({});
+            await ResetToken.remove({});
+            addResponse = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(seed.business);
+        });
+
+        it ('it should create a reset token', async () => {
+            const { email } = business;
+            const response = await chai.request(server)
+                .post(`${BASE_PATH}/reset`)
+                .send({ email });
+            response.should.have.status(200);
+
+            const { userId } = addResponse.body;
+
+            const tokens = await ResetToken.find({ userId, used: false });
+            tokens.should.be.an('array').and.have.lengthOf(1);
+        });
+
+        it ('it should not create a reset token if email is missing, invalid or does not exist', async () => {
+            const { NOT_FOUND, BAD_REQUEST } = general;
+            let response;
+            const cases = [
+                { email: null, errorType: BAD_REQUEST },
+                { email: 'invalid', errorType: BAD_REQUEST },
+                { email: 'inexis@te.nt', errorType: NOT_FOUND }
+            ];
+
+            cases.forEach(async ({ email, errorType }) => {
+                const { code, statusCode } = errorType;
+                response = await chai.request(server)
+                    .post(`${BASE_PATH}/reset`)
+                    .send({ email });
+                response.should.have.status(statusCode);
+                response.body.should.have.property('apiErrorCode').eql(code);
+            });
+
+            const tokens = await ResetToken.find({});
+            tokens.should.be.an('array').and.have.lengthOf(0);
+
+        }); 
     });
 });

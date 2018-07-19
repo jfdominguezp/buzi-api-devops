@@ -54,6 +54,12 @@ const ErrorTypes = {
             code: 'AUTH-005',
             statusCode: 401,
             message: 'Invalid password'
+        },
+
+        RESET_TOKEN_USED: {
+            code: 'AUTH-006',
+            statusCode: 403,
+            message: 'Reset token already used'
         }
     },
 
