@@ -1,11 +1,11 @@
-const jwt             = require('jsonwebtoken');
 const randtoken       = require('rand-token');
 const mongoose        = require('mongoose');
 const LocalUser       = require('../../models/local-user');
-const RefreshToken    = require('../../models/refresh-token');
 const { createError } = require('../../errors/error-generator');
 const ErrorTypes      = require('../../errors/error-types');
-const { authConfig }  = require('../../../config/server-config');
+const tokens          = require('./tokens');
+
+const { issueAccessToken, storeRefreshToken } = tokens;
 
 const {
     INVALID_CREDENTIALS,
@@ -41,32 +41,6 @@ async function authenticateCredentials({ email, password, username }, connection
     if (!isMatch) throw createError(INCORRECT_PASSWORD, 'Wrong password');
 
     return user;
-}
-
-function issueAccessToken({ _id, email, connection, username }, isSocial) {
-    const payload = {
-        _id,
-        email,
-        username,
-        connection,
-        isSocial
-    };
-    const options = {
-        expiresIn: 900,
-        issuer: authConfig.issuer
-    };
-    const token = jwt.sign(payload, authConfig.jwtSecret, options);
-    return token;
-}
-
-async function storeRefreshToken(userId, token, provider, isSocial) {
-    const refresh = new RefreshToken({
-        token,
-        userId,
-        provider,
-        isSocial
-    });
-    return refresh.save();
 }
 
 module.exports = signin;

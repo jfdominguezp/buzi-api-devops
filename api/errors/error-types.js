@@ -60,6 +60,12 @@ const ErrorTypes = {
             code: 'AUTH-006',
             statusCode: 403,
             message: 'Reset token already used'
+        },
+
+        BAD_REFRESH_TOKEN: {
+            code: 'AUTH-007',
+            statusCode: 401,
+            message: 'Bad refresh token'
         }
     },
 

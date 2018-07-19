@@ -1,13 +1,17 @@
-const express         = require('express');
-const Business        = require('../../models/business');
-const Member          = require('../../models/member');
-const { createError } = require('../../errors/error-generator');
-const wrapAsync       = require('../../errors/wrap-async');
-const signup          = require('./signup');
-const signin          = require('./signin');
-const router          = express.Router();
+const express                = require('express');
+const Business               = require('../../models/business');
+const Member                 = require('../../models/member');
+const { createError }        = require('../../errors/error-generator');
+const ErrorTypes             = require('../../errors/error-types');
+const wrapAsync              = require('../../errors/wrap-async');
+const signup                 = require('./signup');
+const signin                 = require('./signin');
+const { refreshAccessToken } = require('./tokens');
+const { verifyAccount }      = require('./verify-email');
+const router                 = express.Router();
 
-const { INVALID_CREDENTIALS }  = require('../../errors/error-types').auth;
+const { INVALID_CREDENTIALS }  = ErrorTypes.auth;
+const { BAD_REQUEST } = ErrorTypes.general;
 const { startReset, endReset } = require('./reset-password');
 
 router.post('/signup', wrapAsync(memberSignup))
@@ -17,7 +21,9 @@ router.post('/signup', wrapAsync(memberSignup))
       .post('/business/signup', wrapAsync(businessSignup))
       .post('/business/signin', wrapAsync(businessSignin))
       .post('/business/reset', wrapAsync(businessStartReset))
-      .put('/business/reset', wrapAsync(businessEndReset));
+      .put('/business/reset', wrapAsync(businessEndReset))
+      .post('/token', wrapAsync(refreshTokens))
+      .get('/verify', wrapAsync(verifyAccountEmail));
 
 //Members
 async function memberSignup(request, response) {
@@ -99,6 +105,26 @@ async function businessEndReset(request, response) {
     const { token, _id, password } = request.body;
     const reset = await endReset({ token, _id, password }, 'Businesses');
     response.status(200).json(reset);
+}
+
+//Common
+async function refreshTokens (request, response) {
+    const { refreshToken, userId } = request.body;
+    if (!refreshToken || !userId) {
+        createError(BAD_REQUEST, 'Incomplete request');
+    }
+    const reissuedToken = await refreshAccessToken(refreshToken, userId);
+    response.status(200).json(reissuedToken);
+}
+
+async function verifyAccountEmail (request, response) {
+    const { userId, token, provider, isSocial } = request.query;
+    if (!userId || !token || !provider || !isSocial) {
+        createError(BAD_REQUEST, 'Incomplete email validation request received');
+    }
+    const verified = await verifyAccount(userId, token, provider, isSocial);
+    response.status(200).json(verified);
+
 }
 
 module.exports = router;

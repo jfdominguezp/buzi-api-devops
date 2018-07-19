@@ -1,5 +1,7 @@
-const mongoose = require('mongoose');
-const Schema   = mongoose.Schema;
+const mongoose        = require('mongoose');
+const Schema          = mongoose.Schema;
+const { createError } = require('../errors/error-generator');
+const ErrorTypes      = require('../errors/error-types');
 
 const RefreshTokenSchema = new Schema({
     token: { type: String, required: true },
@@ -15,35 +17,35 @@ const RefreshTokenSchema = new Schema({
 
 RefreshTokenSchema.index({ updatedAt: 1 }, { expires: '10d' });
 
-RefreshTokenSchema.statics.getToken = function (token, userId, cb) {
-    this.findOne({ token, userId }, (error, data) => {
-        if(error) return cb(error, null);
-        if(!data || !data.token || !data.active) return cb(null, null);
-        return cb(null, data);
-    });
+RefreshTokenSchema.statics.getToken = async function (token, userId) {
+    const refreshToken = await this.findOne({ token, userId });
+    if(!refreshToken || !refreshToken.token || !refreshToken.active) {
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token or id');
+    }
+    return refreshToken;
 };
 
-RefreshTokenSchema.statics.revokeToken = function (token, userId, cb) {
-    this.findOneAndUpdate(
+RefreshTokenSchema.statics.revokeToken = async function (token, userId) {
+    const refreshToken = await this.findOneAndUpdate(
         { token, userId },
         { $set: { active: false } },
-        { new: true },
-        (error, data) => {
-            if(error) return cb(error);
-            if(!data || !data.token) return cb('Token not found');
-            return cb(null, data);
-        }
+        { new: true }
     );
+    if(!refreshToken || !refreshToken.token) {
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token or id');
+    }
+    return refreshToken;
 };
 
-RefreshTokenSchema.statics.updateLastAccess = function (token, userId) {
-    this.findOneAndUpdate(
+RefreshTokenSchema.statics.updateLastAccess = async function (token, userId) {
+    const refreshToken = await this.findOneAndUpdate(
         { token, userId },
-        { $set: { lastAccess: Date.now() } },
-        (error, token) => {
-            if(error) console.log('Error updating refresh token ' + token.token + ' with userId ' +  token.userId);
-        }
+        { $set: { lastAccess: Date.now() } }
     );
+    if(!refreshToken || !refreshToken.token) {
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token or id');
+    }
+    return refreshToken;
 };
 
 module.exports = mongoose.model('RefreshToken', RefreshTokenSchema);
