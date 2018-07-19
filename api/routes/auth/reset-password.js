@@ -24,7 +24,7 @@ async function endReset({ token, _id, password }, connection) {
         throw createError(BAD_REQUEST, 'Bad reset password request');
     }
     await ResetToken.useToken(_id, token);
-    await LocalUser.changePassword(connection, _id, password);
+    await LocalUser.changePassword(_id, connection, password);
     return 'Password Changed';
 }
 

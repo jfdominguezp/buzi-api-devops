@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "scripts": {
         "start": "nodemon .server.js",
-        "test": "cross-env NODE_ENV=test mocha --recursive --timeout 15000"
+        "test": "cross-env NODE_ENV=test mocha --recursive --timeout 30000"
     },
     "engines": {
         "node": ">=8.0.0"

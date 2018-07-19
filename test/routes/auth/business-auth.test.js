@@ -15,6 +15,8 @@ const BASE_PATH = '/api/auth/business';
 //General variables
 let business;
 let addResponse;
+let resetToken;
+let localUser;
 
 chai.use(chaiHttp);
 
@@ -216,5 +218,91 @@ describe('Business Auth', () => {
             tokens.should.be.an('array').and.have.lengthOf(0);
 
         }); 
+    });
+
+    describe ('PUT /api/auth/business/reset', () => {
+        beforeEach('clean and insert base user', async () => {
+            business = Object.assign({ }, seed.business);
+            await Business.remove({});
+            await LocalUser.remove({});
+            await ResetToken.remove({});
+            addResponse = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(seed.business);
+            await chai.request(server)
+                .post(`${BASE_PATH}/reset`)
+                .send({ email: seed.business.email });
+            resetToken = await ResetToken.findOne({});
+        });
+
+        it ('it should reset the password', async () => {
+            const payload = {
+                _id: addResponse.body.userId,
+                token: resetToken.token,
+                password: 'NewPassword123*'
+            };
+
+            const { userId, data } = addResponse.body;
+
+            const response = await chai.request(server)
+                .put(`${BASE_PATH}/reset`)
+                .send(payload);
+            
+            response.should.have.status(200);
+            
+            const signedIn = await chai.request(server)
+                .post(`${BASE_PATH}/signin`)
+                .send({ email: business.email, password: payload.password });
+            
+            signedIn.should.have.status(200);
+            signedIn.body.should.have.property('userId').eql(userId);
+            signedIn.body.should.have.property('data');
+            signedIn.body.data.should.have.property('_id').eql(data._id);
+        });
+
+        it ('it should not reset the password if a bad token is passed or request is incomplete', async () => {
+            const { BAD_REQUEST, NOT_FOUND } = general;
+            const cases = [
+                {
+                    payload: { _id: 'abcdefg4567', token: 'abcd', password: 'NewPassword123*' },
+                    errorType: NOT_FOUND
+                },
+                {
+                    payload: { _id: addResponse.body.userId, password: 'NewPassword123*' },
+                    errorType: BAD_REQUEST
+                },
+                {
+                    payload: { token: resetToken.token, password: 'NewPassword123*' },
+                    errorType: BAD_REQUEST
+                },
+                {
+                    payload: { _id: addResponse.body.userId, token: resetToken.token },
+                    errorType: BAD_REQUEST
+                },
+            ];
+
+            let response;
+            cases.forEach(async ({ payload, errorType }) => {
+                const { code, statusCode } = errorType;
+                response = await chai.request(server)
+                    .put(`${BASE_PATH}/reset`)
+                    .send(payload);
+                response.should.have.status(statusCode);
+                response.body.should.have.property('apiErrorCode').eql(code);
+            });
+
+            const { email, password } = business;
+            const { userId, data } = addResponse.body;
+
+            const signedIn = await chai.request(server)
+                .post(`${BASE_PATH}/signin`)
+                .send({ email, password });
+            
+            signedIn.should.have.status(200);
+            signedIn.body.should.have.property('userId').eql(userId);
+            signedIn.body.should.have.property('data');
+            signedIn.body.data.should.have.property('_id').eql(data._id);
+
+        });
     });
 });
