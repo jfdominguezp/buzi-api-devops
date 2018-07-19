@@ -5,8 +5,7 @@ const jwt                   = require('jsonwebtoken');
 const should                = chai.should();
 const server                = require('../../../server');
 const seed                  = require('./seed.json');
-const wrapAsync             = require('../../../api/errors/wrap-async');
-const { auth, db, general } = require('../../../api/errors/error-types');
+const { auth, general } = require('../../../api/errors/error-types');
 
 const Member       = require('../../../api/models/member');
 const LocalUser    = require('../../../api/models/local-user');
@@ -15,6 +14,8 @@ const VerifyToken  = require('../../../api/models/verify-token');
 
 const { it, describe, beforeEach } = mocha;
 const BASE_PATH = '/api/auth';
+const { BAD_REQUEST, NOT_FOUND } = general;
+const { BAD_REFRESH_TOKEN } = auth;
 
 chai.use(chaiHttp);
 
@@ -69,9 +70,6 @@ describe('Auth common', () => {
         });
 
         it ('it should not issue a new access token if incomplete request or bad refresh token or user id provided', async () => {
-            const { BAD_REQUEST, NOT_FOUND } = general;
-            const { BAD_REFRESH_TOKEN } = auth;
-
             const cases = [
                 { 
                     payload:  { userId: signinResponse.body.userId },
@@ -134,8 +132,6 @@ describe('Auth common', () => {
         });
 
         it ('it should not verify an email if missing properties, bad token or bad user id', async () => {
-            const { BAD_REQUEST, NOT_FOUND } = general;
-
             const { userId, token, provider, isSocial } = verifyToken;
 
             const cases = [

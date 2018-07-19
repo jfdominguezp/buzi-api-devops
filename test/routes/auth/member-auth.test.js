@@ -13,6 +13,10 @@ const ResetToken = require('../../../api/models/reset-token');
 const { it, describe, beforeEach } = mocha;
 const BASE_PATH = '/api/auth';
 
+const { INVALID_CREDENTIALS, INCORRECT_PASSWORD } = auth;
+const { BAD_REQUEST, NOT_FOUND } = general;
+const { VALIDATOR_ERROR, DUPLICATE_KEY } = db;
+
 //General variables
 let member;
 let addResponse;
@@ -48,8 +52,6 @@ describe('Member Auth', () => {
         });
 
         it ('it should not create a member with missing credentials or validation errors', async () => {
-            const { VALIDATOR_ERROR } = db;
-            const { INVALID_CREDENTIALS } = auth;
             const cases = [];
             const addCase = (errorCase) => {
                 cases.push(errorCase);
@@ -86,7 +88,7 @@ describe('Member Auth', () => {
         });
 
         it ('it should not create a member user with an already existing email', async () => {
-            const { code, statusCode } = db.DUPLICATE_KEY;
+            const { code, statusCode } = DUPLICATE_KEY;
             const response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(member);
@@ -129,7 +131,6 @@ describe('Member Auth', () => {
 
         it ('it should not sign a member in with missing credentials, incorrect password or unexistent email', async () => {
             const { email, password } = member;
-            const { INVALID_CREDENTIALS, INCORRECT_PASSWORD } = auth;
 
             const cases = [
                 { credentials: { email }, errorType: INVALID_CREDENTIALS },
@@ -175,7 +176,6 @@ describe('Member Auth', () => {
         });
 
         it ('it should not create a reset token if email is missing, invalid or does not exist', async () => {
-            const { NOT_FOUND, BAD_REQUEST } = general;
             let response;
             const cases = [
                 { email: null, errorType: BAD_REQUEST },
@@ -239,7 +239,7 @@ describe('Member Auth', () => {
         });
 
         it ('it should not reset the password if a bad token is passed or request is incomplete', async () => {
-            const { BAD_REQUEST, NOT_FOUND } = general;
+
             const cases = [
                 {
                     payload: { _id: 'abcdefg4567', token: 'abcd', password: 'NewPassword123*' },
