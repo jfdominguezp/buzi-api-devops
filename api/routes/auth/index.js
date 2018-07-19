@@ -111,7 +111,7 @@ async function businessEndReset(request, response) {
 async function refreshTokens (request, response) {
     const { refreshToken, userId } = request.body;
     if (!refreshToken || !userId) {
-        createError(BAD_REQUEST, 'Incomplete request');
+        throw createError(BAD_REQUEST, 'Incomplete request');
     }
     const reissuedToken = await refreshAccessToken(refreshToken, userId);
     response.status(200).json(reissuedToken);
@@ -120,7 +120,7 @@ async function refreshTokens (request, response) {
 async function verifyAccountEmail (request, response) {
     const { userId, token, provider, isSocial } = request.query;
     if (!userId || !token || !provider || !isSocial) {
-        createError(BAD_REQUEST, 'Incomplete email validation request received');
+        throw createError(BAD_REQUEST, 'Incomplete email validation request received');
     }
     const verified = await verifyAccount(userId, token, provider, isSocial);
     response.status(200).json(verified);

@@ -9,11 +9,14 @@ const { NOT_FOUND } = ErrorTypes.general;
 const { BAD_REFRESH_TOKEN } = ErrorTypes.auth;
 
 async function refreshAccessToken(refreshToken, userId) {
-    const token = await RefreshToken.getToken(refreshToken, userId);
-    if(!token) {
+    const token = await RefreshToken.getToken(refreshToken);
+    if (!token) {
         throw createError(BAD_REFRESH_TOKEN, 'Bad refresh token');
     }
-    if(!token.isSocial) {
+    if (token.userId !== userId) {
+        throw createError(NOT_FOUND, 'Refresh token does not belong to the specified user');
+    }
+    if (!token.isSocial) {
         const user = await LocalUser.findOne({ _id: userId });
         if(!user) {
             throw createError(NOT_FOUND, 'User not found');

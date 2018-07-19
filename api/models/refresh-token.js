@@ -17,10 +17,10 @@ const RefreshTokenSchema = new Schema({
 
 RefreshTokenSchema.index({ updatedAt: 1 }, { expires: '10d' });
 
-RefreshTokenSchema.statics.getToken = async function (token, userId) {
-    const refreshToken = await this.findOne({ token, userId });
+RefreshTokenSchema.statics.getToken = async function (token) {
+    const refreshToken = await this.findOne({ token });
     if(!refreshToken || !refreshToken.token || !refreshToken.active) {
-        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token or id');
+        createError(ErrorTypes.general.NOT_FOUND, 'Invalid token');
     }
     return refreshToken;
 };
