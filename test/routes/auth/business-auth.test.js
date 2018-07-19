@@ -50,7 +50,7 @@ describe('Business Auth', () => {
             const cases = [];
             const addCase = (errorCase) => {
                 cases.push(errorCase);
-                business = Object.assign({ }, business);
+                business = Object.assign({ }, seed.business);
             }
             
             //Bad email

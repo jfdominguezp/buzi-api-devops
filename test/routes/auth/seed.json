@@ -17,5 +17,12 @@
             "facebookUser": "buziapphq",
             "instagramUser": "buziapphq"
         }
+    },
+
+    "member": {
+        "email": "jfdominguezp@gmail.com",
+        "password": "password1",
+        "name": "Juan",
+        "familyName": "Dominguez" 
     }
 }
