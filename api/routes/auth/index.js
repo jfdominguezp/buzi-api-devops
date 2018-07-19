@@ -120,6 +120,7 @@ async function refreshTokens (request, response) {
 async function verifyAccountEmail (request, response) {
     const { userId, token, provider, isSocial } = request.query;
     if (!userId || !token || !provider || !isSocial) {
+        console.log('Inside error');
         throw createError(BAD_REQUEST, 'Incomplete email validation request received');
     }
     const verified = await verifyAccount(userId, token, provider, isSocial);

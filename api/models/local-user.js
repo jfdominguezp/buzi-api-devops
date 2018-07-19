@@ -45,7 +45,7 @@ LocalUserSchema.statics.markEmailVerified = async function (_id) {
     if(!user) throw createError(NOT_FOUND, 'User does not exist');
     if(user.email_verified) return user;
     user.email_verified = true;
-    user.save();
+    return user.save();
 }
 
 module.exports = mongoose.model('LocalUser', LocalUserSchema);

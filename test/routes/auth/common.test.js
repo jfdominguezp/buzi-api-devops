@@ -21,14 +21,16 @@ chai.use(chaiHttp);
 //General variables
 let member;
 let signinResponse;
+let addResponse;
+let verifyToken;
 
 describe('Auth common', () => {
+    /**
+     * We use the member schema because is the easiest one. This
+     * test is focused on LocalUser. In other test sets, we evaluate
+     * if inserting a member or a business also inserts a local user.
+     */
     describe('POST /api/auth/token', () => {
-        /**
-         * We use the member schema because is the easiest one. This
-         * test is focused on LocalUser. In other test sets, we evaluate
-         * if inserting a member or a business also inserts a local user.
-         */
         beforeEach('clean data and create member', async () => {
             member = Object.assign({ }, seed.member);
             await RefreshToken.remove({});
@@ -99,5 +101,69 @@ describe('Auth common', () => {
                 response.body.should.have.property('apiErrorCode').eql(code);
             });
         });
+    });
+
+    describe('GET /api/auth/verify', () => {
+        beforeEach('clean data and create member', async () => {
+            member = Object.assign({ }, seed.member);
+            await VerifyToken.remove({});
+            await LocalUser.remove({});
+            await Member.remove({});
+            
+            addResponse = await chai.request(server)
+                .post(`${BASE_PATH}/signup`)
+                .send(member);
+            
+            verifyToken = await VerifyToken.findOne({ });
+
+            verifyToken.should.have.property('token');
+            verifyToken.should.have.property('userId').eql(addResponse.body.userId);
+            verifyToken.should.have.property('provider').eql('Local');
+            verifyToken.should.have.property('isSocial').eql(false);
+        });
+
+        it ('it should verify an email', async () => {
+            const { userId, token, provider, isSocial } = verifyToken;
+
+            const response = await chai.request(server)
+                .get(`${BASE_PATH}/verify?userId=${userId}&token=${token}&provider=${provider}&isSocial=${isSocial}`);
+
+            response.should.have.status(200);
+            response.body.should.have.property('_id').eql(addResponse.body.userId);
+            response.body.should.have.property('email_verified').eql(true);
+        });
+
+        it ('it should not verify an email if missing properties, bad token or bad user id', async () => {
+            const { BAD_REQUEST, NOT_FOUND } = general;
+
+            const { userId, token, provider, isSocial } = verifyToken;
+
+            const cases = [
+                {
+                    query: `${BASE_PATH}/verify?userId=${userId}&token=${token}&provider=&isSocial=`,
+                    errorType: BAD_REQUEST
+                },
+                {
+                    query: `${BASE_PATH}/verify?userId=${userId}&token=ABCDGE&provider=${provider}&isSocial=${isSocial}`,
+                    errorType: NOT_FOUND
+                },
+                {
+                    query: `${BASE_PATH}/verify?userId=456&token=${token}&provider=${provider}&isSocial=${isSocial}`,
+                    errorType: NOT_FOUND
+                }
+            ];
+
+            let response;
+            cases.forEach(async ({ query, errorType }) => {
+                const { code, statusCode } = errorType;
+
+                response = await chai.request(server)
+                    .get(query);
+
+                response.should.have.status(statusCode);
+                response.body.should.have.property('apiErrorCode').eql(code);
+            });
+
+        })
     });
 });
