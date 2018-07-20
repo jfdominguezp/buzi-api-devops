@@ -1,8 +1,8 @@
-const passport    = require('passport');
-const config      = require('../../config/server-config');
-const LocalUser   = require('../models/local-user');
-const Member      = require('../models/member');
-const Business    = require('../models/business');
+const passport        = require('passport');
+const config          = require('../../config/server-config');
+const LocalUser       = require('../models/local-user');
+const Member          = require('../models/member');
+const Business        = require('../models/business');
 
 //JWT Strategy Variables
 const passportJwt = require('passport-jwt');
@@ -44,13 +44,12 @@ const jwtBusinessesLocal = new JwtStrategy(jwtParams, (jwt_payload, done) => {
         if(!user) return done(null, null);
         Business.findOne(
             { 'identities.userId': user._id, 'identities.provider': 'Local' }, 
-            'shortId name logo userId -_id',  
+            '-identities -branches -contactData',  
             (error, business) => {
-            if(error) return done(error, null);
-            if(!business) return done(null, null);
-
-            return done(null, business);
-        });
+                if(error) return done(error, null);
+                if(!business) return done(null, null);
+                return done(null, business);
+            });
     });
 });
 
@@ -64,13 +63,6 @@ passport.use('businesses', jwtBusinessesLocal);
 
 
 //Ownership Verification
-function verifyMemberOwnership(request, response, next) {
-    const user = request.user;
-    const memberId = request.body.memberId;
-    if(!memberId) return response.status(400).json('Bad Request');
-    if(memberId != user.memberId) return response.status(401).json('Unauthorized');
-    return next();
-}
 
 const actions = {
     authenticateMember: () => {
@@ -82,7 +74,6 @@ const actions = {
     authenticateAdministrator: () => {
         return passport.authenticate('administrators', { session: false });
     },
-    verifyMemberOwnership: verifyMemberOwnership
 };
 
 module.exports = actions;

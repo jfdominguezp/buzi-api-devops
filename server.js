@@ -12,7 +12,8 @@ const morgan     = require('morgan');
 const handleErrors   = require('./api/errors/error-handlers');
 
 //Routes
-const benefitRoutes  = require('./api/routes/benefit-routes');
+const rewardsRoutes  = require('./api/routes/benefits/rewards-routes');
+const dealsRoutes    = require('./api/routes/benefits/deals-routes');
 const businessRoutes = require('./api/routes/business-routes');
 const authRoutes     = require('./api/routes/auth/index');
 const memberRoutes   = require('./api/routes/member-routes');
@@ -41,7 +42,8 @@ mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.use('/benefits', benefitRoutes);
+router.use('/rewards', rewardsRoutes);
+//router.use('/deals', dealsRoutes);
 router.use('/business', businessRoutes);
 router.use('/auth', authRoutes);
 router.use('/member', memberRoutes);
