@@ -35,11 +35,12 @@ async function updateReward(request, response) {
     const businessId = request.user._id;
     const body = request.body;
     const query = { _id, businessId };
+
     const options = { new: true, runValidators: true };
-
+    
     const updated = await SpendingReward.findOneAndUpdate(query, body, options).exec();
-
     if (!updated) throw createError(general.NOT_FOUND, 'Reward not found for specified business');
+    
     response.status(200).json(updated);
 }
 

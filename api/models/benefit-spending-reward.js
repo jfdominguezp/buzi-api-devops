@@ -4,7 +4,6 @@ const Schema   = mongoose.Schema;
 
 const SpendingReward = new Schema({
     rewardType: { type: String, required: true },
-    spendingGoal: { type: Number, required: true } 
 }, 
 {
     timestamps: true
