@@ -11,7 +11,7 @@ const CustomerEvent = new Schema({
     code: { type: String, required: true },
     updates: [{
         date: { type: Date, default: Date.now() },
-        CustomerEvent: { type: String, required: true }
+        status: { type: String, required: true }
     }]
 },
 {
@@ -21,6 +21,7 @@ const CustomerEvent = new Schema({
 });
 
 CustomerEvent.index({ benefitId: 1, code: 1 }, { unique: true });
+CustomerEvent.index({ businessId: 1, memberId: 1, benefitId: 1 });
 
 //TODO Create CustomerEvent
 //TODO Update CustomerEvent CustomerEvent
