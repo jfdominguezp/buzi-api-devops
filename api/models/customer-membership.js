@@ -6,6 +6,8 @@ const CustomerMembership = new Schema({
     businessId: { type: Schema.Types.ObjectId, ref: 'Business', required: true },
     spendingTransactions: [{
         amount: { type: Number, required: true },
+        type: { type: String, enum: ['Add', 'Claim'] },
+        benefitId: Schema.Types.ObjectId,
         createdAt: { type: Date, default: Date.now() }
     }],
     awardedBenefits: [{
