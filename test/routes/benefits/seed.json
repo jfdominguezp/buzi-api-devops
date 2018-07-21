@@ -1,0 +1,51 @@
+{
+    "business": {
+        "username": "negocioprueba",
+        "email": "jfdominguezp@gmail.com",
+        "password": "Juanfer1*",
+        "name": "Negocio de prueba",
+        "country": "Colombia",
+        "city": "Cali",
+        "category": "Restaurantes y Bares",
+        "contactData": {
+            "name": "Juan Fernando Domínguez",
+            "email": "jfdominguezp@gmail.com",
+            "phoneNumber": "+573182800329"
+        },
+        "internetData": {
+            "website": "www.buziapp.com",
+            "facebookUser": "buziapphq",
+            "instagramUser": "buziapphq"
+        }
+    },
+    
+    "deal": {
+        "name": "First deal",
+        "description": "First description",
+        "termsAndConditions": "T & C",
+        "endDate": "12/31/2018 00:00",
+        "scheduledDays": [
+            {
+                "dayOfWeek": "Monday",
+                "startingHour": 17,
+                "startingMinute": 0,
+                "endingHour": 22,
+                "endingMinute": 59
+            },
+            {
+                "dayOfWeek": "Friday",
+                "startingHour": 18,
+                "startingMinute": 0,
+                "endingHour": 21,
+                "endingMinute": 59
+            }
+        ]
+    }, 
+
+    "spendingReward": {
+        "name": "First deal",
+        "description": "First description",
+        "termsAndConditions": "T & C",
+        "rewardType": "2x1"
+    }
+}
