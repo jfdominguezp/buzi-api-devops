@@ -64,4 +64,11 @@ const BusinessSchema = new Schema({
     toJSON: { virtuals: true }
 });
 
+BusinessSchema.pre('save', function(next) {
+    if (this.isNew) {
+        this.branches = [];
+    }
+    next();
+});
+
 module.exports = mongoose.model('Business', BusinessSchema);
