@@ -27,7 +27,7 @@ const app      = express();
 const router   = express.Router();
 
 //Configure Raven
-Raven.config('https://1bda48c3836d44df8bc374b629d4c296:503d8785a786416abc68627fe20807af@sentry.io/306530').install();
+Raven.config(config.thirdParty.sentryUri).install();
 app.use(Raven.requestHandler());
 
 

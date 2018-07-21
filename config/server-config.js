@@ -13,6 +13,9 @@ const config = {
         baseUri: process.env.BASE_URI,
         businessUri: process.env.BUSINESS_URI,
         passwordResetPath: process.env.PASSWORD_RESET_PATH
+    },
+    thirdParty: {
+        sentryUri: process.env.SENTRY
     }
 };
 
