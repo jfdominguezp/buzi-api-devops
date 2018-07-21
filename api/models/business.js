@@ -7,7 +7,10 @@ const BranchSchema = new Schema({
     name: { type: String, required: true },
     address: { type: String, required: true },
     phoneNumber: { type: String, required: true },
-    location: { type: String, coordinates: [Number] },
+    location: { 
+        type: { type: String, required: true }, 
+        coordinates: { type: [Number], required: true }
+    },
     country: { type: String, required: true },
     city: { type: String, required: true },
     email: {
@@ -84,10 +87,17 @@ BusinessSchema.statics.addBranch = function(_id, branch) {
 BusinessSchema.statics.updateBranch = function(_id, branchId,  fields) {
     
     const setFields = dotNotate(fields, { }, 'branches.$.');
-
     return this.findOneAndUpdate(
         { _id, 'branches._id': branchId }, 
         { $set: setFields },
+        { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
+    );
+}
+
+BusinessSchema.statics.removeBranch = function(_id, branchId) {
+    return this.findByIdAndUpdate(
+        _id,
+        { $pull: { branches: { _id: branchId } } },
         { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
     );
 }

@@ -1,0 +1,31 @@
+{
+    "business": {
+        "username": "negocioprueba",
+        "email": "jfdominguezp@gmail.com",
+        "password": "Juanfer1*",
+        "name": "Negocio de prueba",
+        "country": "Colombia",
+        "city": "Cali",
+        "category": "Restaurantes y Bares",
+        "contactData": {
+            "name": "Juan Fernando Domínguez",
+            "email": "jfdominguezp@gmail.com",
+            "phoneNumber": "+573182800329"
+        },
+        "internetData": {
+            "website": "www.buziapp.com",
+            "facebookUser": "buziapphq",
+            "instagramUser": "buziapphq"
+        }
+    },
+
+    "branch": {
+        "name": "Sucursal principal",
+        "address": "Cra 10 10-10",
+        "phoneNumber": "5555555",
+        "location": { "type": "Point", "coordinates": [-179.0, 0.0] },
+        "country": "Colombia",
+        "city": "Cali",
+        "email": "jfdominguezp@gmail.com"
+    } 
+}

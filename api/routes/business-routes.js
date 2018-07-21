@@ -2,7 +2,7 @@ const express         = require('express');
 const auth            = require('../auth/auth');
 const wrapAsync       = require('../errors/wrap-async');
 const { createError } = require('../errors/error-generator');
-const ErrorTypes      = require('../errors/error-types');
+const { NOT_FOUND }   = require('../errors/error-types').general;
 const Business        = require('../models/business');
 const router          = express.Router();
 
@@ -20,6 +20,7 @@ async function updateBranch(request, response) {
     const { _id } = request.user;
     const { branchId } = request.params;
     const business = await Business.updateBranch(_id, branchId, request.body);
+    if (!business) throw createError(NOT_FOUND, 'Branch not found');
     response.status(200).json(business);
 }
 
