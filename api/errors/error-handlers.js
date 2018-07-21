@@ -1,8 +1,13 @@
 const { MongoError }                 = require('mongodb');
+const { CastError }                  = require('mongoose')
 const { createErrorAndSendResponse } = require('./error-generator');
 const ErrorTypes                     = require('./error-types');
 
 function handleErrors(error, request, response, next) {
+    if (error instanceof CastError) {
+        return handleCastError(error, response);
+    }
+
     if (error.name && error.name === 'ValidationError') {
         return handleValidatorError(error, response);
     }
@@ -13,6 +18,15 @@ function handleErrors(error, request, response, next) {
         return handleApiError(error, response);
     }
     next(error);
+}
+
+function handleCastError(error, response) {
+    const { message, errors } = error;
+    return createErrorAndSendResponse(
+        ErrorTypes.db.CAST_ERROR, 
+        { message, errors },
+        response
+    );
 }
 
 function handleValidatorError(error, response) {

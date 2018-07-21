@@ -53,11 +53,22 @@ const BusinessSchema = new Schema({
         isSocial: { type: Boolean, required: true }
     }],
     branches: [BranchSchema],
+    activeSpendingRewards: [{
+        benefitId: { type: Schema.Types.ObjectId, ref: 'SpendingReward', required: true },
+        goalAmount: { type: Number, required: true }
+    }]
 },
 {
     timestamps: true,
     toObject: { virtuals: true },
     toJSON: { virtuals: true }
+});
+
+BusinessSchema.pre('save', function(next) {
+    if (this.isNew) {
+        this.branches = [];
+    }
+    next();
 });
 
 module.exports = mongoose.model('Business', BusinessSchema);

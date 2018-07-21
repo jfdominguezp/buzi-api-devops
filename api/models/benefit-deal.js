@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 //TODO Search deals by location
-const Deal = Benefit.discriminator('Deal', new Schema({
+const Deal = new Schema({
     startDate: { type: Date, default: Date.now() },
     endDate: { type: Date },
     scheduledDays: [{
@@ -18,6 +18,8 @@ const Deal = Benefit.discriminator('Deal', new Schema({
 },
 {
     timestamps: true
-}));
+});
+
+Benefit.discriminator('Deal', Deal);
 
 module.exports = mongoose.model('Deal');

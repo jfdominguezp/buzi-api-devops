@@ -12,7 +12,8 @@ const morgan     = require('morgan');
 const handleErrors   = require('./api/errors/error-handlers');
 
 //Routes
-const benefitRoutes  = require('./api/routes/benefit-routes');
+const rewardsRoutes  = require('./api/routes/benefits/rewards-routes');
+const dealsRoutes    = require('./api/routes/benefits/deals-routes');
 const businessRoutes = require('./api/routes/business-routes');
 const authRoutes     = require('./api/routes/auth/index');
 const memberRoutes   = require('./api/routes/member-routes');
@@ -26,7 +27,7 @@ const app      = express();
 const router   = express.Router();
 
 //Configure Raven
-Raven.config('https://1bda48c3836d44df8bc374b629d4c296:503d8785a786416abc68627fe20807af@sentry.io/306530').install();
+Raven.config(config.thirdParty.sentryUri).install();
 app.use(Raven.requestHandler());
 
 
@@ -41,7 +42,8 @@ mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-router.use('/benefits', benefitRoutes);
+router.use('/rewards', rewardsRoutes);
+router.use('/deals', dealsRoutes);
 router.use('/business', businessRoutes);
 router.use('/auth', authRoutes);
 router.use('/member', memberRoutes);

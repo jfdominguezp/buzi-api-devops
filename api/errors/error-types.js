@@ -86,6 +86,12 @@ const ErrorTypes = {
             code: 'DB-003',
             statusCode: 400,
             message: 'Duplicate key error'
+        },
+
+        CAST_ERROR: {
+            code: 'DB-004',
+            statusCode: 400,
+            message: 'Bad request. Error converting a property or param.'
         }
     }
     

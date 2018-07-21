@@ -7,8 +7,7 @@ const Benefit = new Schema({
     description: { type: String, required: true },
     termsAndConditions: { type: String },
     image: { type: String },
-    branches: { type: [String] },
-    active: { type: Boolean, default: true }
+    branches: { type: [String] }
 }, 
 {
     timestamps: true,
