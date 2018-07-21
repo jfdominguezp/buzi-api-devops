@@ -11,7 +11,7 @@ const LocalUser    = require('../../../api/models/local-user');
 const RefreshToken = require('../../../api/models/refresh-token');
 const VerifyToken  = require('../../../api/models/verify-token');
 
-const { it, describe, before, beforeEach } = mocha;
+const { it, describe, before } = mocha;
 const BASE_PATH = '/api/businesses';
 const { NOT_FOUND } = ErrorTypes.general;
 
