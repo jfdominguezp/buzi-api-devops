@@ -1,5 +1,6 @@
 const mongoose  = require('mongoose');
 const validator = require('email-validator');
+const dotNotate = require('../util/dot-notate');
 const Schema    = mongoose.Schema;
 
 const BranchSchema = new Schema({
@@ -67,8 +68,28 @@ const BusinessSchema = new Schema({
 BusinessSchema.pre('save', function(next) {
     if (this.isNew) {
         this.branches = [];
+        this.activeSpendingRewards = [];
     }
     next();
 });
+
+BusinessSchema.statics.addBranch = function(_id, branch) {
+    return this.findByIdAndUpdate(
+        _id, 
+        { $push: { branches: branch } },
+        { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
+    );
+}
+
+BusinessSchema.statics.updateBranch = function(_id, branchId,  fields) {
+    
+    const setFields = dotNotate(fields, { }, 'branches.$.');
+
+    return this.findOneAndUpdate(
+        { _id, 'branches._id': branchId }, 
+        { $set: setFields },
+        { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
+    );
+}
 
 module.exports = mongoose.model('Business', BusinessSchema);

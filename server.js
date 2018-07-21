@@ -44,7 +44,7 @@ router.use(bodyParser.json());
 
 router.use('/rewards', rewardsRoutes);
 router.use('/deals', dealsRoutes);
-router.use('/business', businessRoutes);
+router.use('/businesses', businessRoutes);
 router.use('/auth', authRoutes);
 router.use('/member', memberRoutes);
 
