@@ -1,7 +1,6 @@
 const mocha             = require('mocha');
 const chai              = require('chai');
 const chaiHttp          = require('chai-http');
-const jwt               = require('jsonwebtoken');
 const should            = chai.should();
 const server            = require('../../../server');
 const seed              = require('./seed.json');
@@ -15,18 +14,17 @@ const VerifyToken  = require('../../../api/models/verify-token');
 
 const { it, describe, before, after } = mocha;
 const BASE_PATH = '/api/rewards';
-const { BAD_REQUEST, NOT_FOUND } = ErrorTypes.general;
+const { NOT_FOUND } = ErrorTypes.general;
 const { VALIDATOR_ERROR, CAST_ERROR } = ErrorTypes.db;
-const { business, deal, spendingReward } = seed;
+const { business, spendingReward } = seed;
 
 //General variables
 let authenticatedBusiness;
 let savedReward;
-let savedDeal;
 
 chai.use(chaiHttp);
 
-describe('Rewards & Deals', () => {
+describe('Rewards', () => {
 
     before('Clean DB, sign business up and authenticate', async () => {
         await Business.remove({});
