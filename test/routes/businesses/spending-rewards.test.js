@@ -14,7 +14,6 @@ const SpendingReward = require('../../../api/models/benefit-spending-reward');
 
 const { it, describe, before } = mocha;
 const BASE_PATH = '/api/businesses/spendingrewards';
-const { NOT_FOUND } = ErrorTypes.general;
 
 const { VALIDATOR_ERROR, CAST_ERROR } = ErrorTypes.db;
 const { business, reward } = seed;
