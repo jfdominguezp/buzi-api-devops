@@ -3,7 +3,6 @@ const auth            = require('../../auth/auth');
 const wrapAsync       = require('../../errors/wrap-async');
 const { createError } = require('../../errors/error-generator');
 const { general }     = require('../../errors/error-types');
-const Business        = require('../../models/business');
 const SpendingReward  = require('../../models/benefit-spending-reward');
 const router          = express.Router();
 
@@ -17,8 +16,10 @@ async function setActiveSpendingRewards(request, response) {
     const ids = rewards.map(reward => reward.benefitId);
     const allFound = await SpendingReward.allFound(ids, { businessId: request.user._id });
     if (!allFound) throw createError(NOT_FOUND, 'Not all reward ids were found');
-    const business = await Business.setActiveSpendingRewards(request.user._id, rewards);
-    response.status(200).json(business);
+    request.user.activeSpendingRewards = rewards;
+    const savedBusiness = await request.user.save();
+    delete savedBusiness.identities;
+    response.status(200).json(savedBusiness);
 }
 
 module.exports = router;

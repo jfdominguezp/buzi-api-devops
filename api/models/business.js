@@ -1,7 +1,9 @@
-const mongoose  = require('mongoose');
-const validator = require('email-validator');
-const dotNotate = require('../util/dot-notate');
-const Schema    = mongoose.Schema;
+const mongoose            = require('mongoose');
+const validator           = require('email-validator');
+const dotNotate           = require('../util/dot-notate');
+const { createError     } = require('../errors/error-generator');
+const { VALIDATOR_ERROR } = require('../errors/error-types').db;
+const Schema              = mongoose.Schema;
 
 const BranchSchema = new Schema({
     name: { type: String, required: true },
@@ -24,6 +26,18 @@ const BranchSchema = new Schema({
 },
 {
     timestamps: true
+});
+
+const ActiveSpendingRewardSchema = new Schema({
+    benefitId: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'SpendingReward', 
+        required: true
+    },
+    goalAmount: { type: Number, required: true }
+}, 
+{
+    _id: false
 });
 
 const BusinessSchema = new Schema({
@@ -57,10 +71,7 @@ const BusinessSchema = new Schema({
         isSocial: { type: Boolean, required: true }
     }],
     branches: [BranchSchema],
-    activeSpendingRewards: [{
-        benefitId: { type: Schema.Types.ObjectId, required: true },
-        goalAmount: { type: Number, required: true }
-    }]
+    activeSpendingRewards: [ActiveSpendingRewardSchema]
 },
 {
     timestamps: true,
@@ -78,8 +89,8 @@ BusinessSchema.pre('save', function(next) {
 
 //Branches
 BusinessSchema.statics.addBranch = function(_id, branch) {
-    return this.findByIdAndUpdate(
-        _id, 
+    return this.findOneAndUpdate(
+        { _id }, 
         { $push: { branches: branch } },
         { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
     );
@@ -96,19 +107,10 @@ BusinessSchema.statics.updateBranch = function(_id, branchId,  fields) {
 }
 
 BusinessSchema.statics.removeBranch = function(_id, branchId) {
-    return this.findByIdAndUpdate(
-        _id,
+    return this.findOneAndUpdate(
+        { _id },
         { $pull: { branches: { _id: branchId } } },
         { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
-    );
-}
-
-//Active rewards
-BusinessSchema.statics.setActiveSpendingRewards = function(_id, activeSpendingRewards) {
-    return this.findByIdAndUpdate(
-        _id, 
-        { activeSpendingRewards },
-        { new: true, runValidators: true, fields: '-identities' }
     );
 }
 

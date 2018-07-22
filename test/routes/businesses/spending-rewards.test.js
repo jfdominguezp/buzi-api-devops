@@ -91,4 +91,33 @@ describe ('Spending rewards', () => {
         const returnedRewards = response.body.activeSpendingRewards;
         returnedRewards.forEach(reward => reward.should.include.keys(payload[0]));
     });
+
+    it ('it should fail if business not authenticated', async () => {
+        const [ first, second, third ] = createdRewards;
+        const payload = [ first, second, third ].map(reward => {
+            return { benefitId: reward._id, goalAmount: 50000 };
+        });
+
+        const response = await chai.request(server)
+            .put(BASE_PATH)
+            .send(payload);
+
+        response.should.have.status(401);
+    });
+
+    it ('it should fail if bad model provided', async () => {
+        const [ first, second, third ] = createdRewards;
+        const payload = [ first, second, third ].map(reward => {
+            return { benefitId: reward._id };
+        });
+
+        const response = await chai.request(server)
+            .put(BASE_PATH)
+            .set('Authorization', `Bearer ${authenticatedBusiness.tokens.accessToken}`)
+            .send(payload);
+
+        const { statusCode, code } = VALIDATOR_ERROR;
+        response.should.have.status(statusCode);
+        response.body.should.have.property('apiErrorCode').eql(code);
+    });
 });
