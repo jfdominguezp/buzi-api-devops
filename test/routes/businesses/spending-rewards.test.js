@@ -16,7 +16,7 @@ const { it, describe, before } = mocha;
 const BASE_PATH = '/api/businesses/spendingrewards';
 const { NOT_FOUND } = ErrorTypes.general;
 
-const { VALIDATOR_ERROR } = ErrorTypes.db;
+const { VALIDATOR_ERROR, CAST_ERROR } = ErrorTypes.db;
 const { business, reward } = seed;
 
 chai.use(chaiHttp);
@@ -117,6 +117,21 @@ describe ('Spending rewards', () => {
             .send(payload);
 
         const { statusCode, code } = VALIDATOR_ERROR;
+        response.should.have.status(statusCode);
+        response.body.should.have.property('apiErrorCode').eql(code);
+    });
+
+    it ('it should fail if benefitIds are not ObjectIds', async () => {
+        const payload = [
+            { benefitId: '12345', goalAmount: 5000 }
+        ];
+
+        const response = await chai.request(server)
+            .put(BASE_PATH)
+            .set('Authorization', `Bearer ${authenticatedBusiness.tokens.accessToken}`)
+            .send(payload);
+
+        const { statusCode, code } = CAST_ERROR;
         response.should.have.status(statusCode);
         response.body.should.have.property('apiErrorCode').eql(code);
     });
