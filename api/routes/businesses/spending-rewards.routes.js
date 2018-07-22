@@ -13,9 +13,11 @@ router.put('/', [auth.authenticateBusiness()], wrapAsync(setActiveSpendingReward
 async function setActiveSpendingRewards(request, response) {
     const rewards = request.body;
     if (!Array.isArray(rewards)) throw createError(BAD_REQUEST, 'Rewards should be in an array');
+
     const ids = rewards.map(reward => reward.benefitId);
     const allFound = await SpendingReward.allFound(ids, { businessId: request.user._id });
     if (!allFound) throw createError(NOT_FOUND, 'Not all reward ids were found');
+    
     request.user.activeSpendingRewards = rewards;
     const savedBusiness = await request.user.save();
     delete savedBusiness.identities;

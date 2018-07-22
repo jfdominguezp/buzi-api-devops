@@ -1,8 +1,6 @@
 const mongoose            = require('mongoose');
 const validator           = require('email-validator');
 const dotNotate           = require('../util/dot-notate');
-const { createError     } = require('../errors/error-generator');
-const { VALIDATOR_ERROR } = require('../errors/error-types').db;
 const Schema              = mongoose.Schema;
 
 const BranchSchema = new Schema({
