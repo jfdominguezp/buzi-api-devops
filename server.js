@@ -12,10 +12,10 @@ const morgan     = require('morgan');
 const handleErrors   = require('./api/errors/error-handlers');
 
 //Routes
-const rewardsRoutes  = require('./api/routes/benefits/rewards-routes');
-const dealsRoutes    = require('./api/routes/benefits/deals-routes');
-const businessRoutes = require('./api/routes/business-routes');
-const authRoutes     = require('./api/routes/auth/index');
+const rewardsRoutes  = require('./api/routes/benefits/rewards.routes');
+const dealsRoutes    = require('./api/routes/benefits/deals.routes');
+const businessRoutes = require('./api/routes/businesses/businesses.routes');
+const authRoutes     = require('./api/routes/auth/auth.routes');
 const memberRoutes   = require('./api/routes/member-routes');
 
 //Config

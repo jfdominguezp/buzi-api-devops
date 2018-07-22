@@ -58,7 +58,7 @@ const BusinessSchema = new Schema({
     }],
     branches: [BranchSchema],
     activeSpendingRewards: [{
-        benefitId: { type: Schema.Types.ObjectId, ref: 'SpendingReward', required: true },
+        benefitId: { type: Schema.Types.ObjectId, required: true },
         goalAmount: { type: Number, required: true }
     }]
 },
@@ -76,6 +76,7 @@ BusinessSchema.pre('save', function(next) {
     next();
 });
 
+//Branches
 BusinessSchema.statics.addBranch = function(_id, branch) {
     return this.findByIdAndUpdate(
         _id, 
@@ -99,6 +100,15 @@ BusinessSchema.statics.removeBranch = function(_id, branchId) {
         _id,
         { $pull: { branches: { _id: branchId } } },
         { new: true, runValidators: true, fields: '-identities -activeSpendingRewards' }
+    );
+}
+
+//Active rewards
+BusinessSchema.statics.setActiveSpendingRewards = function(_id, activeSpendingRewards) {
+    return this.findByIdAndUpdate(
+        _id, 
+        { activeSpendingRewards },
+        { new: true, runValidators: true, fields: '-identities' }
     );
 }
 

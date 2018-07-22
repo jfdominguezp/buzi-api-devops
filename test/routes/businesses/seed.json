@@ -27,5 +27,12 @@
         "country": "Colombia",
         "city": "Cali",
         "email": "jfdominguezp@gmail.com"
-    } 
+    }, 
+
+    "reward": {
+        "name": "Recompensa de prueba",
+        "description": "Descripción de prueba",
+        "termsAndConditions": "T & C",
+        "rewardType": "2 x 1"
+    }
 }
