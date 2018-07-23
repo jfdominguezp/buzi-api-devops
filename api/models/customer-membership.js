@@ -30,7 +30,7 @@ const CustomerMembershipSchema = new Schema({
     timestamps: true
 });
 
-CustomerMembershipSchema.statics.addSpendingTransaction = async function(business, member, amount) {
+CustomerMembershipSchema.statics.registerCustomerSpending = async function(business, member, amount) {
     //Get membership
     let membership = await this.findOne({ member, business }).populate('business');
     let membershipBusiness;
