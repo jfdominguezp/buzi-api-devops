@@ -93,6 +93,14 @@ const ErrorTypes = {
             statusCode: 400,
             message: 'Bad request. Error converting a property or param.'
         }
+    },
+
+    rewards: {
+        NO_REWARDS_PROGRAM: {
+            code: 'RW-001',
+            statusCode: 400,
+            message: 'No rewards program created'
+        }
     }
     
 };

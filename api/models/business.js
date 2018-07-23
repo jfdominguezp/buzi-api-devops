@@ -112,4 +112,60 @@ BusinessSchema.statics.removeBranch = function(_id, branchId) {
     );
 }
 
+//Spending Rewards
+/**
+ * Returns the next non-awarded reward. If all awarded, returns the least rewarded.
+ * @param {*} _id 
+ * @param {*} previousRewards 
+ */
+BusinessSchema.methods.findNextReward = function(previousRewards) {
+    const { activeSpendingRewards } = this;
+
+    if (!activeSpendingRewards.length) return null;
+
+    //Get arrays of ids for available and past rewards
+    const activeRewardsIds = activeSpendingRewards.map(({ benefitId }) => benefitId);
+    const awardedRewards = previousRewards.map(({ benefitId }) => benefitId);
+
+    //Find active rewards that haven't been awarded to the member
+    const nonAwarded = activeRewardsIds.filter(id => !awardedRewards.includes(id));
+
+    //If non-awarded rewards, return the first of the array
+    if (nonAwarded.length) {
+        return activeSpendingRewards.find(({ benefitId }) => benefitId === nonAwarded[0])
+    }
+
+    //Get benefit ids that were awarded and are still active
+    const awardedAndActive = awardedRewards.filter(reward => activeRewardsIds.include(reward));
+
+    //Count repetitions and positions of the awarded and active rewards, and return an object
+    const countedRewardsObj = getCountAndPositions(awardedAndActive);
+
+    //Convert to array and sort descending 
+    const sortedRewards = Object.keys(countedRewardsObj)
+        .map(key => { 
+            return { benefitId: key, ...countedRewardsObj[key] }
+        })
+        .sort((a, b) => {
+            return a['occurrences'] - b['occurrences'] || a['position'] - b['position'];
+        });
+    
+    //Return the least awarded reward that has the lowest position in the rewards program
+    return activeSpendingRewards.find(({ benefitId }) => benefitId === sortedRewards[0].benefitId);
+}
+
+//Helper function
+const getCountAndPositions = rewards => {
+    return rewards.reduce((accum, current, index) => {
+        Object.assign(accum, { 
+            [current]: {
+                occurrences: (accum[current].occurrences || 0) + 1,
+                position: accum[current].position || index
+            } 
+        });
+    }, {})
+}
+
+
+
 module.exports = mongoose.model('Business', BusinessSchema);
