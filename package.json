@@ -9,7 +9,8 @@
         "test": "cross-env NODE_ENV=test mocha --recursive --timeout 120000"
     },
     "engines": {
-        "node": ">=8.3.0"
+        "node": ">=8.3.0",
+        "npm": ">=6.2.0"
     },
     "dependencies": {
         "@sendgrid/mail": "^6.3.1",
