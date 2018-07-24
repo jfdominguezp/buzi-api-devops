@@ -3,6 +3,8 @@
         "username": "negocioprueba1",
         "email": "jfdominguezp@gmail.com",
         "password": "password1",
+        "phone": "+573182800329",
+        "countryCode": "CO",
         "name": "Negocio de prueba",
         "country": "Colombia",
         "city": "Cali",
@@ -23,6 +25,8 @@
         "email": "jfdominguezp@gmail.com",
         "password": "password1",
         "name": "Juan",
-        "familyName": "Dominguez" 
+        "familyName": "Dominguez",
+        "phone": "+573182800329",
+        "countryCode": "CO"
     }
 }

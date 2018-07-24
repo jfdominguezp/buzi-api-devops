@@ -1,7 +1,8 @@
-const mongoose            = require('mongoose');
-const validator           = require('email-validator');
-const dotNotate           = require('../util/dot-notate');
-const Schema              = mongoose.Schema;
+const _         = require('lodash');
+const mongoose  = require('mongoose');
+const validator = require('email-validator');
+const dotNotate = require('../util/dot-notate');
+const Schema    = mongoose.Schema;
 
 const BranchSchema = new Schema({
     name: { type: String, required: true },
@@ -56,7 +57,7 @@ const BusinessSchema = new Schema({
                 message: '{VALUE} is not a valid email!'
             },
         },
-        phoneNumber: { type: String, required: true },
+        phone: { type: String, required: true },
     },
     internetData: {
         website: String,
@@ -124,19 +125,19 @@ BusinessSchema.methods.findNextReward = function(previousRewards) {
     if (!activeSpendingRewards.length) return null;
 
     //Get arrays of ids for available and past rewards
-    const activeRewardsIds = activeSpendingRewards.map(({ benefitId }) => benefitId);
-    const awardedRewards = previousRewards.map(({ benefitId }) => benefitId);
+    const activeRewardsIds = activeSpendingRewards.map(({ benefitId }) => benefitId.toString());
+    const awardedRewards = previousRewards.map(({ benefitId }) => benefitId.toString());
 
     //Find active rewards that haven't been awarded to the member
-    const nonAwarded = activeRewardsIds.filter(id => !awardedRewards.includes(id));
+    const nonAwarded = _.difference(activeRewardsIds, awardedRewards);
 
     //If non-awarded rewards, return the first of the array
     if (nonAwarded.length) {
-        return activeSpendingRewards.find(({ benefitId }) => benefitId === nonAwarded[0])
+        return activeSpendingRewards.find(({ benefitId }) => benefitId.toString() === nonAwarded[0])
     }
 
     //Get benefit ids that were awarded and are still active
-    const awardedAndActive = awardedRewards.filter(reward => activeRewardsIds.include(reward));
+    const awardedAndActive = awardedRewards.filter(reward => activeRewardsIds.includes(reward));
 
     //Count repetitions and positions of the awarded and active rewards, and return an object
     const countedRewardsObj = getCountAndPositions(awardedAndActive);
@@ -151,16 +152,16 @@ BusinessSchema.methods.findNextReward = function(previousRewards) {
         });
     
     //Return the least awarded reward that has the lowest position in the rewards program
-    return activeSpendingRewards.find(({ benefitId }) => benefitId === sortedRewards[0].benefitId);
+    return activeSpendingRewards.find(({ benefitId }) => benefitId.toString() === sortedRewards[0].benefitId.toString());
 }
 
 //Helper function
 const getCountAndPositions = rewards => {
     return rewards.reduce((accum, current, index) => {
-        Object.assign(accum, { 
+        return Object.assign(accum, { 
             [current]: {
-                occurrences: (accum[current].occurrences || 0) + 1,
-                position: accum[current].position || index
+                occurrences: (accum[current] ? accum[current].occurrences : 0) + 1,
+                position: (accum[current] ? accum[current].position : index)
             } 
         });
     }, {})

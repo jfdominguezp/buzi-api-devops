@@ -51,4 +51,8 @@ LocalUserSchema.statics.markEmailVerified = async function (_id) {
     return user.save();
 }
 
+LocalUserSchema.query.byPhone = function(phone, connection) {
+    return this.where({ phone, connection});
+};
+
 module.exports = mongoose.model('LocalUser', LocalUserSchema);

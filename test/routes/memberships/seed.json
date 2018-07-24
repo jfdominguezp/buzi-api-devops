@@ -1,0 +1,59 @@
+{
+    "business": {
+        "username": "negocioprueba",
+        "email": "jfdominguezp@gmail.com",
+        "password": "Juanfer1*",
+        "phone": "+573182800329",
+        "countryCode": "CO",
+        "name": "Negocio de prueba",
+        "country": "Colombia",
+        "city": "Cali",
+        "category": "Restaurantes y Bares",
+        "contactData": {
+            "name": "Juan Fernando Domínguez",
+            "email": "jfdominguezp@gmail.com",
+            "phone": "+573182800329"
+        },
+        "internetData": {
+            "website": "www.buziapp.com",
+            "facebookUser": "buziapphq",
+            "instagramUser": "buziapphq"
+        }
+    },
+
+    "member": {
+        "email": "jfdominguezp@gmail.com",
+        "password": "password1",
+        "name": "Juan",
+        "familyName": "Dominguez",
+        "phone": "+573182800329",
+        "countryCode": "CO"
+    },
+
+    "spendingRewards": [
+        {
+            "name": "First reward",
+            "description": "First description",
+            "termsAndConditions": "T & C",
+            "rewardType": "2x1"
+        },
+        {
+            "name": "Second reward",
+            "description": "Second description",
+            "termsAndConditions": "T & C",
+            "rewardType": "Cashback"
+        },
+        {
+            "name": "Third reward",
+            "description": "Third description",
+            "termsAndConditions": "T & C",
+            "rewardType": "Percentage discount"
+        },
+        {
+            "name": "Fourth reward",
+            "description": "Fourth description",
+            "termsAndConditions": "T & C",
+            "rewardType": "Free product"
+        }
+    ]
+}
