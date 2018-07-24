@@ -88,16 +88,6 @@ describe ('Customer spendings', () => {
             .send(member);
     });
 
-    after ('Clean DB', async () => {
-        await LocalUser.remove({});
-        await RefreshToken.remove({});
-        await VerifyToken.remove({});
-        await Benefit.remove({});
-        await Business.remove({});
-        await Member.remove({});
-        await CustomerMembership.remove({});
-    });
-
     describe ('POST /api/memberships/spendings', () => {
         it ('it should register a spending that does not reach a reward goal', async () => {
 

@@ -71,7 +71,7 @@ async function businessSignup(request, response) {
     const business = new Business(request.body);
     await business.validate();
     const { email, password, username, phone, countryCode } = request.body ;
-    if (!email || !password || !username || !phone, !countryCode) {
+    if (!email || !password || !username || !phone || !countryCode) {
         throw createError(INVALID_CREDENTIALS, 'Incomplete credentials');
     }
     const returnFields = ['_id', 'name', 'logo'];

@@ -33,6 +33,9 @@ app.use(Raven.requestHandler());
 
 
 mongoose.connect(config.mongoURI[app.settings.env], (err, res) => {
+    if (app.settings.env === 'test') {
+        mongoose.connection.db.dropDatabase();
+    }
     if(err) {
         console.log('Error connecting to the database. ' + err);
     } else if(app.settings.env !== 'test') {

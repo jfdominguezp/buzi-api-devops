@@ -12,7 +12,7 @@ const LocalUser    = require('../../../api/models/local-user');
 const RefreshToken = require('../../../api/models/refresh-token');
 const VerifyToken  = require('../../../api/models/verify-token');
 
-const { it, describe, beforeEach } = mocha;
+const { it, describe, before, beforeEach } = mocha;
 const BASE_PATH = '/api/auth';
 const { BAD_REQUEST, NOT_FOUND } = general;
 const { BAD_REFRESH_TOKEN } = auth;
@@ -90,34 +90,34 @@ describe('Auth common', () => {
             ];
 
             let response;
-            cases.forEach(async ({ payload, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { payload, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .post(`${BASE_PATH}/token`)
                     .send(payload);             
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
         });
     });
 
     describe('GET /api/auth/verify', () => {
-        beforeEach('clean data and create member', async () => {
-            member = Object.assign({ }, seed.member);
-            await VerifyToken.remove({});
+        before('clean data and create member', async () => {
+            await RefreshToken.remove({});
             await LocalUser.remove({});
             await Member.remove({});
+            await VerifyToken.remove({});
+
+            member = Object.assign({ }, seed.member);
+            member.email = 'other@email.com';
+            member.phone = '5555555';
             
             addResponse = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(member);
             
             verifyToken = await VerifyToken.findOne({ });
-
-            verifyToken.should.have.property('token');
-            verifyToken.should.have.property('userId').eql(addResponse.body.userId);
-            verifyToken.should.have.property('provider').eql('Local');
-            verifyToken.should.have.property('isSocial').eql(false);
         });
 
         it ('it should verify an email', async () => {
@@ -150,7 +150,8 @@ describe('Auth common', () => {
             ];
 
             let response;
-            cases.forEach(async ({ query, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { query, errorType } = cases[i]
                 const { code, statusCode } = errorType;
 
                 response = await chai.request(server)
@@ -158,7 +159,7 @@ describe('Auth common', () => {
 
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
 
         })
     });

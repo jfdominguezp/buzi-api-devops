@@ -73,7 +73,8 @@ describe('Member Auth', () => {
             delete member.password;
             addCase({ member, errorType: INVALID_CREDENTIALS });
             let response;
-            cases.forEach(async ({ member, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { member, errorType } = cases[i]
                 const { code, statusCode } = errorType;
                 try {
                     response = await chai.request(server)
@@ -84,7 +85,7 @@ describe('Member Auth', () => {
                 } catch (error) {
                     return error;
                 }
-            });
+            }
         });
 
         it ('it should not create a member user with an already existing email', async () => {
@@ -140,14 +141,15 @@ describe('Member Auth', () => {
             ];
 
             let response;
-            await cases.forEach(async ({ credentials, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { credentials, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .post(`${BASE_PATH}/signin`)
                     .send(credentials);
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
         });
     });
 
@@ -183,14 +185,15 @@ describe('Member Auth', () => {
                 { email: 'inexis@te.nt', errorType: NOT_FOUND }
             ];
 
-            cases.forEach(async ({ email, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { email, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .post(`${BASE_PATH}/reset`)
                     .send({ email });
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
 
             const tokens = await ResetToken.find({});
             tokens.should.be.an('array').and.have.lengthOf(0);
@@ -260,14 +263,15 @@ describe('Member Auth', () => {
             ];
 
             let response;
-            cases.forEach(async ({ payload, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { payload, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .put(`${BASE_PATH}/reset`)
                     .send(payload);
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
 
             const { email, password } = member;
             const { userId, data } = addResponse.body;
