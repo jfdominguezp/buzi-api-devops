@@ -36,7 +36,6 @@ describe('Business Auth', () => {
             const response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(seed.business);
-            
             response.should.have.status(200);
             response.body.should.be.a('object');
 
@@ -81,14 +80,16 @@ describe('Business Auth', () => {
             addCase({ business, errorType: VALIDATOR_ERROR });
 
             let response;
-            cases.forEach(async ({ business, errorType }) => {
+            for (let i = 0; i < cases.length; i++){
+                const { business, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .post(`${BASE_PATH}/signup`)
                     .send(business);
+
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
 
         });
 
@@ -97,6 +98,7 @@ describe('Business Auth', () => {
             const response = await chai.request(server)
                 .post(`${BASE_PATH}/signup`)
                 .send(business);
+                
             response.should.have.status(200);
             response.body.should.have.property('userId');
 
@@ -161,14 +163,15 @@ describe('Business Auth', () => {
             ];
 
             let response;
-            cases.forEach(async ({ credentials, errorType }) => {
+            for (let i = 0; i < cases.length; i++){
+                const { credentials, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .post(`${BASE_PATH}/signin`)
                     .send(credentials);
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
         });
     });
 
@@ -204,14 +207,15 @@ describe('Business Auth', () => {
                 { email: 'inexis@te.nt', errorType: NOT_FOUND }
             ];
 
-            cases.forEach(async ({ email, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { email, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .post(`${BASE_PATH}/reset`)
                     .send({ email });
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
 
             const tokens = await ResetToken.find({});
             tokens.should.be.an('array').and.have.lengthOf(0);
@@ -280,14 +284,15 @@ describe('Business Auth', () => {
             ];
 
             let response;
-            cases.forEach(async ({ payload, errorType }) => {
+            for (let i = 0; i < cases.length; i++) {
+                const { payload, errorType } = cases[i];
                 const { code, statusCode } = errorType;
                 response = await chai.request(server)
                     .put(`${BASE_PATH}/reset`)
                     .send(payload);
                 response.should.have.status(statusCode);
                 response.body.should.have.property('apiErrorCode').eql(code);
-            });
+            }
 
             const { email, password } = business;
             const { userId, data } = addResponse.body;

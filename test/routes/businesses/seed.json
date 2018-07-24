@@ -1,8 +1,8 @@
 {
     "business": {
-        "username": "negocioprueba1",
+        "username": "negocioprueba",
         "email": "jfdominguezp@gmail.com",
-        "password": "password1",
+        "password": "Juanfer1*",
         "phone": "+573182800329",
         "countryCode": "CO",
         "name": "Negocio de prueba",
@@ -21,12 +21,20 @@
         }
     },
 
-    "member": {
-        "email": "jfdominguezp@gmail.com",
-        "password": "password1",
-        "name": "Juan",
-        "familyName": "Dominguez",
-        "phone": "+573182800329",
-        "countryCode": "CO"
+    "branch": {
+        "name": "Sucursal principal",
+        "address": "Cra 10 10-10",
+        "phoneNumber": "5555555",
+        "location": { "type": "Point", "coordinates": [-179.0, 0.0] },
+        "country": "Colombia",
+        "city": "Cali",
+        "email": "jfdominguezp@gmail.com"
+    }, 
+
+    "reward": {
+        "name": "Recompensa de prueba",
+        "description": "Descripción de prueba",
+        "termsAndConditions": "T & C",
+        "rewardType": "2 x 1"
     }
 }

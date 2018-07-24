@@ -29,13 +29,13 @@ router.post('/signup', wrapAsync(memberSignup))
 async function memberSignup(request, response) {
     const member = new Member(request.body);
     await member.validate();
-    const { email, password } = request.body;
+    const { email, password, phone, countryCode } = request.body;
     if (!email || !password) {
         throw createError(INVALID_CREDENTIALS, 'Incomplete credentials');
     }
     const returnFields = ['_id', 'name', 'familyName'];
     const resData = await signup(
-        { email, password },
+        { email, password, phone, countryCode },
         member,
         'People',
         returnFields,
@@ -70,13 +70,13 @@ async function memberEndReset(request, response) {
 async function businessSignup(request, response) {
     const business = new Business(request.body);
     await business.validate();
-    const { email, password, username } = request.body ;
-    if (!email || !password || !username) {
+    const { email, password, username, phone, countryCode } = request.body ;
+    if (!email || !password || !username || !phone || !countryCode) {
         throw createError(INVALID_CREDENTIALS, 'Incomplete credentials');
     }
     const returnFields = ['_id', 'name', 'logo'];
     const resData = await signup(
-        { email, password, username }, 
+        { email, password, username, phone, countryCode }, 
         business, 
         'Businesses', 
         returnFields, 

@@ -17,4 +17,8 @@ const MemberSchema = new Schema({
     timestamps: true
 });
 
+MemberSchema.query.byUserId = function(userId) {
+    return this.where({ identities: { $elemMatch: { userId } } });
+}
+
 module.exports = mongoose.model('Member', MemberSchema);

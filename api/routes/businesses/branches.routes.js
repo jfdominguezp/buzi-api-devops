@@ -1,13 +1,13 @@
 const express         = require('express');
-const auth            = require('../auth/auth');
-const wrapAsync       = require('../errors/wrap-async');
-const { createError } = require('../errors/error-generator');
-const { NOT_FOUND }   = require('../errors/error-types').general;
-const Business        = require('../models/business');
+const auth            = require('../../auth/auth');
+const wrapAsync       = require('../../errors/wrap-async');
+const { createError } = require('../../errors/error-generator');
+const { NOT_FOUND }   = require('../../errors/error-types').general;
+const Business        = require('../../models/business');
 const router          = express.Router();
 
-router.post('/branches', [auth.authenticateBusiness()], wrapAsync(addBranch))
-      .put('/branches/:branchId', [auth.authenticateBusiness()], wrapAsync(updateBranch));
+router.post('/', [auth.authenticateBusiness()], wrapAsync(addBranch))
+      .put('/:branchId', [auth.authenticateBusiness()], wrapAsync(updateBranch));
 
 async function addBranch(request, response) {
     const { _id } = request.user;

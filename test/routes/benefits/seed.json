@@ -3,6 +3,8 @@
         "username": "negocioprueba",
         "email": "jfdominguezp@gmail.com",
         "password": "Juanfer1*",
+        "phone": "+573182800329",
+        "countryCode": "CO",
         "name": "Negocio de prueba",
         "country": "Colombia",
         "city": "Cali",
@@ -10,7 +12,7 @@
         "contactData": {
             "name": "Juan Fernando Domínguez",
             "email": "jfdominguezp@gmail.com",
-            "phoneNumber": "+573182800329"
+            "phone": "+573182800329"
         },
         "internetData": {
             "website": "www.buziapp.com",

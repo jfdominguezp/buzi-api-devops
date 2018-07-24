@@ -220,7 +220,8 @@ describe('Deals', () => {
             const newBusiness = { 
                 ...business, 
                 email: 'other@email.com', 
-                username: 'otherusername' 
+                username: 'otherusername',
+                phone: '3006978539'
             };
             await chai.request(server)
                 .post('/api/auth/business/signup')

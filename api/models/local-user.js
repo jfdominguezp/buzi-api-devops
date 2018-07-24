@@ -20,6 +20,8 @@ const LocalUserSchema = new Schema({
     },
     email_verified: { type: Boolean, default: false },
     username: { type: String, trim: true, unique: true, sparse: true },
+    phone: { type: String, trim: true, required: true },
+    countryCode: { type: String, required: true },
     passwordHash: { type: String }
 },
 {
@@ -27,6 +29,7 @@ const LocalUserSchema = new Schema({
 });
 
 LocalUserSchema.index({ email: 1, connection: 1 }, { unique: true });
+LocalUserSchema.index({ phone: 1, connection: 1 }, { unique: true });
 
 LocalUserSchema.methods.passwordMatch = async function (password) {
     return bcrypt.compare(password, this.passwordHash);
@@ -47,5 +50,9 @@ LocalUserSchema.statics.markEmailVerified = async function (_id) {
     user.email_verified = true;
     return user.save();
 }
+
+LocalUserSchema.query.byPhone = function(phone, connection) {
+    return this.where({ phone, connection});
+};
 
 module.exports = mongoose.model('LocalUser', LocalUserSchema);
